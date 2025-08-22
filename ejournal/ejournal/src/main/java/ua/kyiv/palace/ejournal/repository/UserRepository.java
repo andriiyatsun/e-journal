@@ -1,6 +1,6 @@
 package ua.kyiv.palace.ejournal.repository;
 
-import org.apache.catalina.User;
+import ua.kyiv.palace.ejournal.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

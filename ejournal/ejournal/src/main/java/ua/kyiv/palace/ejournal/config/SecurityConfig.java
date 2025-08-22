@@ -23,42 +23,49 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .authorizeRequests()
-                .antMatchers("/login", "/css/**", "/images/**").permitAll() // дозволити доступ до логіну і ресурсів
-                .antMatchers("/owner/**").hasRole("OWNER") // доступ тільки для OWNER
-                .antMatchers("/admin/**").hasRole("ADMIN") // доступ тільки для ADMIN
-                .antMatchers("/teacher/**").hasRole("TEACHER") // доступ тільки для TEACHER
-                .anyRequest().authenticated() // інші запити потребують авторизації
-                .and()
-                .formLogin()
-                .loginPage("/login") // сторінка логіну
-                .loginProcessingUrl("/login") // обробка форми
-                .usernameParameter("username") // параметр для email
-                .passwordParameter("password") // параметр для пароля
-                .defaultSuccessUrl("/", true) // перенаправлення після успішного логіну (по ролі буде змінюватися)
-                .permitAll()
-                .and()
-                .logout()
-                .logoutUrl("/logout") // URL для виведення
-                .logoutSuccessUrl("/login?logout") // перенаправлення після виходу
-                .permitAll()
-                .and()
-                .exceptionHandling()
-                .accessDeniedPage("/403"); // сторінка доступу відмовлено
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/login", "/css/**", "/images/**").permitAll()
+                        .requestMatchers("/owner/**").hasRole("OWNER")
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/teacher/**").hasRole("TEACHER")
+                        .anyRequest().authenticated()
+                )
+                .formLogin(form -> form
+                        .loginPage("/login")
+                        .loginProcessingUrl("/login")
+                        .usernameParameter("username")
+                        .passwordParameter("password")
+                        .defaultSuccessUrl("/", true)
+                        .permitAll()
+                )
+                .logout(logout -> logout
+                        .logoutUrl("/logout")
+                        .logoutSuccessUrl("/login?logout")
+                        .permitAll()
+                )
+                .exceptionHandling(exceptionHandling -> exceptionHandling
+                        .accessDeniedPage("/403")
+                );
 
         return http.build();
     }
 
     @Bean
-    public AuthenticationManager authManager(HttpSecurity http) throws Exception {
-        return http.getSharedObject(AuthenticationManagerBuilder.class)
-                .userDetailsService(userDetailsService) // налаштування userDetailsService
-                .passwordEncoder(passwordEncoder()) // налаштування паролів
-                .and().build();
+    public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
+        // Налаштовуємо AuthenticationManager без використання and()
+        AuthenticationManagerBuilder authenticationManagerBuilder =
+                http.getSharedObject(AuthenticationManagerBuilder.class);
+
+        authenticationManagerBuilder
+                .userDetailsService(userDetailsService)
+                .passwordEncoder(passwordEncoder());
+
+        return authenticationManagerBuilder.build(); // створюємо AuthenticationManager без 'and()'
     }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder(); // алгоритм для хешування паролів
+        return new BCryptPasswordEncoder();
     }
 }
+
