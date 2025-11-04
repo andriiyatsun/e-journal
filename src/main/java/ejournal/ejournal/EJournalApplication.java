@@ -9,5 +9,5 @@ public class EJournalApplication {
     public static void main(String[] args) {
         SpringApplication.run(EJournalApplication.class, args);
     }
-
+    //точка запуску програми
 }
