@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="uk" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <!-- ВАЖЛИВО: Заголовок сторінки буде динамічним -->
+    <title th:text="${journal.name}">Журнал</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!--
+      Використовуємо ті самі CSS-змінні та стилі,
+      що й в 'admin-dashboard.html' для єдиного вигляду.
+    -->
+    <style>
+        :root {
+            --bg:#f5f5f5; --card:#fff; --text:#333; --muted:#555;
+            --primary:#007bff; --primary-hover:#0056b3; --border:#ddd;
+            --shadow:0 2px 10px rgba(0,0,0,.1); --radius:8px
+        }
+        * { box-sizing: border-box }
+        html, body { height:100%; margin:0; font-family: Arial, sans-serif; background:var(--bg); color:var(--text) }
+
+        /* ===== Header ===== */
+        .site-header{ background:var(--card); box-shadow:var(--shadow); position:sticky; top:0; z-index:50 }
+        .site-header .container{ max-width:1400px; margin:0 auto; padding:.6rem 1rem; display:flex; align-items:center; gap:.75rem }
+        .header-left{ display:flex; align-items:center; gap:.75rem }
+        .exit-btn{ padding:.45rem .7rem; border:1px solid var(--border); background:#fff; color:var(--text); border-radius:6px; text-decoration:none }
+        .exit-btn:hover{ border-color:#e06666; background:#fff4f4 }
+        .brand{ display:flex; align-items:center; gap:.6rem }
+        .brand__logo{ width:32px; height:32px; border-radius:6px; background:var(--primary); display:inline-block }
+        .brand__title{ font-size:1.05rem; font-weight:bold }
+
+        /* Навігація журналу (Tabs) */
+        .header-tabs{ margin-left:1.5rem; display:flex; gap:.5rem; flex-wrap:wrap; overflow-x: auto; padding-bottom: 5px; }
+        .tab-btn{ padding:.5rem .75rem; background:#fff; border:1px solid var(--border); border-radius:6px; cursor:pointer; color:var(--text); white-space: nowrap; }
+        .tab-btn:hover{ border-color:var(--primary) }
+        .tab-btn.active{ background:var(--primary); color:#fff; border-color:var(--primary) }
+
+        /* ===== Page ===== */
+        .page{ max-width:1400px; margin:1rem auto; padding:0 1rem 2rem }
+        .card{ background:var(--card); border-radius:var(--radius); box-shadow:var(--shadow); padding:1rem 1.25rem; }
+        .tab-panel{ display:none }
+        .tab-panel.active{ display:block }
+        .section-title{ margin:.2rem 0 .75rem; font-size:1.15rem; font-weight: bold; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; }
+        .helper{ color:var(--muted); font-size:.92rem }
+
+        /* Table */
+        .table{ width:100%; border-collapse:collapse; border:1px solid var(--border); border-radius:6px; overflow:hidden }
+        .table th,.table td{ padding:.6rem .75rem; border-bottom:1px solid var(--border); text-align:left; vertical-align:middle }
+        .table th{ background:#fafafa; color:var(--muted); font-weight:bold }
+        .table tr:last-child td{ border-bottom:none }
+
+        /* Journal Info Header */
+        .journal-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 0.5rem 1.5rem;
+            margin-bottom: 1rem;
+            padding: 1rem;
+            background-color: #fdfdfd;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+        }
+        .info-block strong { color: var(--muted); display: block; font-size: 0.85rem; margin-bottom: 0.25rem; }
+        .info-block span { font-size: 1.05rem; }
+
+        @media (max-width:760px){
+            .brand__title{ display:none }
+            .header-tabs { margin-left: 0.5rem; }
+        }
+    </style>
+</head>
+<body>
+<header class="site-header">
+    <div class="container">
+        <div class="header-left">
+            <!-- Кнопка "Назад" повертає на адмін-панель -->
+            <a class="exit-btn" href="/admin/dashboard#journals"
+               title="Повернутися до Адмін-панелі"
+            >&#8592; Назад</a>
+            <span class="brand">
+                <span class="brand__logo"></span>
+                <!-- Динамічний заголовок, що показує назву журналу -->
+                <span class="brand__title" th:text="${journal.name}">Назва Журналу</span>
+            </span>
+        </div>
+
+        <!-- НАВІГАЦІЯ ПО ЖУРНАЛУ (на основі ваших CSV) -->
+        <nav class="header-tabs" id="journalTabs">
+            <button class="tab-btn active" data-tab="info">Основні відомості</button>
+            <button class="tab-btn" data-tab="students">Облік дітей</button>
+            <button class="tab-btn" data-tab="kp1">КП-1 (Теми)</button>
+            <button class="tab-btn" data-tab="kp2">КП-2 (Відвідуваність)</button>
+            <button class="tab-btn" data-tab="safety">Інструктаж</button>
+            <button class="tab-btn" data-tab="org">Орг. робота</button>
+            <button class="tab-btn" data-tab="method">Метод. робота</button>
+            <button class="tab-btn" data-tab="creative">Творчі досягнення</button>
+            <button class="tab-btn" data-tab="report">Статзвіт</button>
+            <button class="tab-btn" data-tab="vacation">Відпустки/Відрядження</button>
+            <button class="tab-btn" data-tab="remarks">Зауваження</button>
+        </nav>
+    </div>
+</header>
+
+<main class="page">
+    <div class="card">
+
+        <!-- ============ ОСНОВНІ ВІДОМОСТІ ============ -->
+        <section id="panel-info" class="tab-panel active">
+            <h3 class="section-title">Основні відомості</h3>
+            <div class="journal-info">
+                <div class="info-block">
+                    <strong>Журнал (Гурток):</strong>
+                    <span th:text="${journal.subject.name}">Назва предмету</span>
+                </div>
+                <div class="info-block">
+                    <strong>Навчальний рік:</strong>
+                    <span th:text="${journal.academicYear.name}">202X-202X</span>
+                </div>
+                <div class="info-block">
+                    <strong>Відділ:</strong>
+                    <span th:text="${journal.subject.department.name}">Назва відділу</span>
+                </div>
+                <div class="info-block">
+                    <strong>Викладачі:</strong>
+                    <!-- Перебираємо список викладачів, якщо вони є -->
+                    <th:block th:if="${!#lists.isEmpty(journal.teachers)}">
+                         <span th:each="teacher, iter : ${journal.teachers}">
+                             <span th:text="${teacher.name + ' ' + teacher.surname}"></span>
+                             <span th:if="!${iter.last}">, </span>
+                         </span>
+                    </th:block>
+                    <span th:if="${#lists.isEmpty(journal.teachers)}" class="helper">Не призначено</span>
+                </div>
+            </div>
+            <!-- Тут буде форма для редагування основних відомостей (Рік навчання, К-сть годин тощо) -->
+            <p class="helper">Форма для редагування "Основних відомостей" (з CSV) буде тут.</p>
+        </section>
+
+        <!-- ============ ОБЛІК ДІТЕЙ ============ -->
+        <section id="panel-students" class="tab-panel">
+            <h3 class="section-title">Облік дітей (Список групи)</h3>
+            <p class="helper">Тут буде таблиця зі списком дітей (з CSV "Облік дітей") та форма для їх додавання.</p>
+        </section>
+
+        <!-- ============ КП-1 (Теми занять) ============ -->
+        <section id="panel-kp1" class="tab-panel">
+            <h3 class="section-title">КП-1: Календарно-тематичний план</h3>
+            <p class="helper">Тут буде таблиця з датами занять, темами та годинами (з CSV "КП-1").</p>
+        </section>
+
+        <!-- ============ КП-2 (Відвідуваність) ============ -->
+        <section id="panel-kp2" class="tab-panel">
+            <h3 class="section-title">КП-2: Облік відвідуваності</h3>
+            <p class="helper">Тут буде таблиця відвідуваності (з CSV "КП-2").</p>
+        </section>
+
+        <!-- ============ ІНСТРУКТАЖ ============ -->
+        <section id="panel-safety" class="tab-panel">
+            <h3 class="section-title">Інструктаж з БЖ</h3>
+            <p class="helper">Тут будуть форми для "Вступний інструктаж", "Інструктаж (дати)" та "Інструктаж (список)".</p>
+        </section>
+
+        <!-- ... Інші панелі-заглушки ... -->
+
+        <section id="panel-org" class="tab-panel">
+            <h3 class="section-title">Оргмасова робота</h3>
+            <p class="helper">Форма для "Оргмасова робота".</p>
+        </section>
+
+        <section id="panel-method" class="tab-panel">
+            <h3 class="section-title">Методична робота</h3>
+            <p class="helper">Форма для "Методична робота".</p>
+        </section>
+
+        <section id="panel-creative" class="tab-panel">
+            <h3 class="section-title">Творчі досягнення</h3>
+            <p class="helper">Форма для "Творчі досягнення".</p>
+        </section>
+
+        <section id="panel-report" class="tab-panel">
+            <h3 class="section-title">Статзвіт</h3>
+            <p class="helper">Форма для "Статзвіт".</p>
+        </section>
+
+        <section id="panel-vacation" class="tab-panel">
+            <h3 class="section-title">Відпустки, відрядження</h3>
+            <p class="helper">Форма для "Відпустки, відрядження".</p>
+        </section>
+
+        <section id="panel-remarks" class="tab-panel">
+            <h3 class="section-title">Зауваження</h3>
+            <p class="helper">Форма для "Зауваження".</p>
+        </section>
+
+    </div>
+</main>
+
+<script>
+    // JS для перемикання вкладок
+    (function(){
+        const tabsContainer = document.getElementById('journalTabs');
+        if (!tabsContainer) return;
+
+        const tabs = tabsContainer.querySelectorAll('.tab-btn');
+        const panels = document.querySelectorAll('.tab-panel');
+
+        function activate(tabName){
+            tabs.forEach(b => b.classList.toggle('active', b.dataset.tab === tabName));
+            panels.forEach(p => p.classList.toggle('active', p.id === 'panel-' + tabName));
+            // Оновлюємо URL, щоб можна було копіювати посилання на вкладку
+            history.replaceState(null, '', '#' + tabName);
+        }
+
+        tabs.forEach(btn => btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            activate(btn.dataset.tab);
+        }));
+
+        // Активуємо вкладку з URL (якщо вона є)
+        const fromHash = location.hash?.replace('#','');
+        if(fromHash) {
+            activate(fromHash);
+        } else {
+            activate('info'); // За замовчуванням відкриваємо "Основні відомості"
+        }
+    })();
+</script>
+
+</body>
+</html>
+
