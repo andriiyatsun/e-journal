@@ -7,10 +7,6 @@ import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
 
-/**
- * Сутність "Навчальний рік".
- * Це центральна "довідкова" сутність для календарних даних.
- */
 @Entity
 @Table(name = "academic_years", uniqueConstraints = {
         @UniqueConstraint(name = "uk_academic_years_name", columnNames = "name")
@@ -35,11 +31,8 @@ public class AcademicYearEntity {
     @Column(nullable = false)
     private LocalDate endDate; // Наприклад 2026-05-31
 
-    @Column(nullable = false)
-    private boolean isActive = false; // Чи є цей рік поточним
-
     // --- Зв'язки ---
-
+    // (Зв'язки з VacationPeriod та Holiday залишаються без змін)
     @OneToMany(mappedBy = "academicYear", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @Builder.Default
     private Set<VacationPeriod> vacationPeriods = new HashSet<>();

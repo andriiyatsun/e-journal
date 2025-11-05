@@ -323,6 +323,17 @@
 
         <!-- ============ JOURNALS (✅ ОНОВЛЕНО) ============ -->
         <section id="panel-journals" class="tab-panel">
+            <div class="alert-messages" style="margin-bottom: 1rem;">
+                <div th:if="${journalError}"
+                     style="padding: 1rem; background: #fff4f4; border: 1px solid #e06666; color: #a04040; border-radius: var(--radius);">
+                    <strong>Помилка:</strong> <span th:text="${journalError}"></span>
+                </div>
+                <div th:if="${journalSuccess}"
+                     style="padding: 1rem; background: #f0fff4; border: 1px solid #6aa84f; color: #27501a; border-radius: var(--radius);">
+                    <strong>Успіх:</strong> <span th:text="${journalSuccess}"></span>
+                </div>
+            </div>
+
             <h3 class="section-title">Журнали (Гуртки)</h3>
             <p class="helper">Оберіть відділ, щоб побачити журнали (гуртки) та додати нові.</p>
 
@@ -539,7 +550,21 @@
 </main>
 
 <script>
-    // Tabs switcher
+    // ✅ КРОК 1: Логіка для "Журналів" (департаментів) тепер йде ПЕРШОЮ
+    // Journals: open subjects for a department
+    const journalDeptButtons = document.querySelectorAll('#panel-journals .dept-list .pill-btn');
+    const journalBoxes = document.querySelectorAll('#panel-journals .subjects-box');
+
+    function activateJournalDept(id) {
+        if (!id) return;
+        journalDeptButtons.forEach(b => b.classList.toggle('active', b.dataset.deptId === id));
+        journalBoxes.forEach(box => box.classList.toggle('active', box.id === 'subjects-' + id));
+    }
+
+    journalDeptButtons.forEach(btn => btn.addEventListener('click', () => activateJournalDept(btn.dataset.deptId)));
+
+    // ✅ КРОК 2: "Tabs switcher" тепер йде ДРУГИМ
+    // Він може безпечно викликати activateJournalDept(), оскільки вона вже визначена
     (function(){
         const tabs = document.querySelectorAll('#adminTabs .tab-btn');
         const panels = {
@@ -563,10 +588,11 @@
                 history.replaceState(null, '', location.pathname + '#' + name);
             } catch (e) {}
 
-            // ✅ ОНОВЛЕННЯ: Якщо активували вкладку Журналів, треба активувати перший відділ
+            // ОНОВЛЕННЯ: Якщо активували вкладку Журналів, треба активувати перший відділ
             if (name === 'journals') {
                 const firstDeptButton = document.querySelector('#panel-journals .dept-list .pill-btn');
                 if (firstDeptButton) {
+                    // Цей виклик тепер безпечний
                     activateJournalDept(firstDeptButton.dataset.deptId);
                 }
             }
@@ -583,6 +609,7 @@
         }
     })();
 
+    // ✅ КРОК 3: Логіка для форм йде останньою
     // Show/hide add-forms
     (function(){
         const map = [
@@ -598,22 +625,6 @@
             }); }
         });
     })();
-
-    // Journals: open subjects for a department
-    // ✅ ОНОВЛЕНА ФУНКЦІЯ
-    const journalDeptButtons = document.querySelectorAll('#panel-journals .dept-list .pill-btn');
-    const journalBoxes = document.querySelectorAll('#panel-journals .subjects-box');
-
-    function activateJournalDept(id) {
-        if (!id) return;
-        journalDeptButtons.forEach(b => b.classList.toggle('active', b.dataset.deptId === id));
-        journalBoxes.forEach(box => box.classList.toggle('active', box.id === 'subjects-' + id));
-    }
-
-    journalDeptButtons.forEach(btn => btn.addEventListener('click', () => activateJournalDept(btn.dataset.deptId)));
-
-    // Авто-активація першого відділу, якщо ми на вкладці "Журнали" (перенесено в активатор вкладок)
-
 </script>
 
 </body>

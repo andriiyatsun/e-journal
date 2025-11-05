@@ -11,12 +11,4 @@ public interface AcademicYearRepository extends JpaRepository<AcademicYearEntity
      * Знаходить навчальний рік за його назвою.
      */
     Optional<AcademicYearEntity> findByName(String name);
-
-    /**
-     * Знаходить поточний АКТИВНИЙ навчальний рік.
-     * В системі має бути лише один такий.
-     */
-    Optional<AcademicYearEntity> findByIsActiveTrue();
-
-    <T> ScopedValue<T> findByIsActive(boolean b);
 }

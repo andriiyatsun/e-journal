@@ -17,10 +17,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-/**
- * Сервіс для керування "Ядром" - Навчальними роками,
- * канікулами, святами та глобальними налаштуваннями.
- */
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -42,23 +38,21 @@ public class CalendarAdminService {
                 .name(name)
                 .startDate(startDate)
                 .endDate(endDate)
-                .isActive(false) // Нові роки ніколи не активні за замовчуванням
+                // ❌ 'isActive' видалено
                 .build();
         return academicYearRepo.save(year);
     }
 
     @Transactional
     public AcademicYearEntity updateAcademicYear(Long yearId, String name, LocalDate startDate, LocalDate endDate) {
+        // ... (код залишається без змін)
         AcademicYearEntity year = academicYearRepo.findById(yearId)
                 .orElseThrow(() -> new IllegalArgumentException("Навчальний рік не знайдено: " + yearId));
-
-        // Перевірка на унікальність назви (якщо назва змінилася)
         if (!year.getName().equals(name)) {
             academicYearRepo.findByName(name).ifPresent(y -> {
                 throw new IllegalArgumentException("Навчальний рік з назвою '" + name + "' вже існує.");
             });
         }
-
         year.setName(name);
         year.setStartDate(startDate);
         year.setEndDate(endDate);
@@ -67,32 +61,13 @@ public class CalendarAdminService {
 
     @Transactional
     public void deleteAcademicYear(Long yearId) {
-        // Канікули та свята видаляться автоматично завдяки cascade/orphanRemoval
         academicYearRepo.deleteById(yearId);
     }
 
-    @Transactional
-    public void setActiveAcademicYear(Long yearId) {
-        AcademicYearEntity newActiveYear = academicYearRepo.findById(yearId)
-                .orElseThrow(() -> new IllegalArgumentException("Навчальний рік не знайдено: " + yearId));
-
-        // 1. Знаходимо старий активний рік (якщо він є) і деактивуємо його
-        Optional<AcademicYearEntity> oldActiveYearOpt = academicYearRepo.findByIsActiveTrue();
-        if (oldActiveYearOpt.isPresent()) {
-            AcademicYearEntity oldActiveYear = oldActiveYearOpt.get();
-            if (!oldActiveYear.getId().equals(yearId)) {
-                oldActiveYear.setActive(false);
-                academicYearRepo.save(oldActiveYear);
-            }
-        }
-
-        // 2. Активуємо новий рік
-        newActiveYear.setActive(true);
-        academicYearRepo.save(newActiveYear);
-    }
+    // ❌ Метод 'setActiveAcademicYear' видалено
 
     // --- Holidays ---
-
+    // ... (код залишається без змін) ...
     @Transactional
     public Holiday addHoliday(Long yearId, String name, LocalDate date) {
         AcademicYearEntity year = academicYearRepo.findById(yearId)
@@ -105,14 +80,13 @@ public class CalendarAdminService {
                 .build();
         return holidayRepo.save(holiday);
     }
-
+    // ... (решта коду) ...
     @Transactional
     public void deleteHoliday(Long holidayId) {
         holidayRepo.deleteById(holidayId);
     }
 
     // --- Vacation Periods ---
-
     @Transactional
     public VacationPeriod addVacation(Long yearId, String name, LocalDate startDate, LocalDate endDate) {
         AcademicYearEntity year = academicYearRepo.findById(yearId)
@@ -133,7 +107,6 @@ public class CalendarAdminService {
     }
 
     // --- Global Settings ---
-
     @Transactional
     public void saveGlobalSettings(Map<String, String> settings) {
         settings.forEach((key, value) -> {

@@ -13,10 +13,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import java.time.LocalDate;
 import java.util.Map;
 
-/**
- * Контролер для обробки POST/DELETE запитів
- * з вкладки "Календар" на адмін-панелі.
- */
 @Controller
 @RequestMapping("/admin/calendar")
 @RequiredArgsConstructor
@@ -35,11 +31,7 @@ public class CalendarAdminController {
         return "redirect:/admin/dashboard#calendar";
     }
 
-    @PostMapping("/years/{id}/set-active")
-    public String setActiveYear(@PathVariable Long id) {
-        calendarService.setActiveAcademicYear(id);
-        return "redirect:/admin/dashboard#calendar";
-    }
+    // ❌ Ендпоінт 'setActiveYear' видалено
 
     @PostMapping("/years/{id}/delete")
     public String deleteYear(@PathVariable Long id) {
@@ -47,16 +39,16 @@ public class CalendarAdminController {
         return "redirect:/admin/dashboard#calendar";
     }
 
+    // ... (решта методів (Holidays, Vacations, Settings) залишаються без змін) ...
     // --- Holidays ---
-
-    @PostMapping("/years/{yearId}/holidays/add")
-    public String addHoliday(@PathVariable Long yearId,
+    @PostMapping("/holidays/add") // ✅ Покращено: прибираємо yearId з URL
+    public String addHoliday(@RequestParam Long yearId, // ✅ Додаємо yearId як параметр
                              @RequestParam String name,
                              @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
         calendarService.addHoliday(yearId, name, date);
         return "redirect:/admin/dashboard#calendar";
     }
-
+    // ... (решта коду) ...
     @PostMapping("/holidays/{id}/delete")
     public String deleteHoliday(@PathVariable Long id) {
         calendarService.deleteHoliday(id);
@@ -64,9 +56,8 @@ public class CalendarAdminController {
     }
 
     // --- Vacations ---
-
-    @PostMapping("/years/{yearId}/vacations/add")
-    public String addVacation(@PathVariable Long yearId,
+    @PostMapping("/vacations/add") // ✅ Покращено: прибираємо yearId з URL
+    public String addVacation(@RequestParam Long yearId, // ✅ Додаємо yearId як параметр
                               @RequestParam String name,
                               @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
                               @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
@@ -81,10 +72,8 @@ public class CalendarAdminController {
     }
 
     // --- Global Settings ---
-
     @PostMapping("/settings/save")
     public String saveSettings(@RequestParam Map<String, String> settings) {
-        // Ми отримуємо всі параметри форми як Map (наприклад, "default_start_month_day" -> "01-09")
         calendarService.saveGlobalSettings(settings);
         return "redirect:/admin/dashboard#calendar";
     }
