@@ -2,7 +2,8 @@
 <html lang="uk" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8" />
-    <title>Адмін-панель</title>
+    <title>Панель викладача</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         :root {
             --bg:#f5f5f5; --card:#fff; --text:#333; --muted:#555;
@@ -11,618 +12,79 @@
         }
         * { box-sizing: border-box }
         html, body { height:100%; margin:0; font-family: Arial, sans-serif; background:var(--bg); color:var(--text) }
-
-        /* ===== Header ===== */
         .site-header{ background:var(--card); box-shadow:var(--shadow); position:sticky; top:0; z-index:50 }
-        .site-header .container{ max-width:1200px; margin:0 auto; padding:.6rem 1rem; display:flex; align-items:center; gap:.75rem }
+        .site-header .container{ max-width:1200px; margin:0 auto; padding:.6rem 1rem; display:flex; align-items:center; justify-content: space-between; }
         .header-left{ display:flex; align-items:center; gap:.75rem }
         .exit-btn{ padding:.45rem .7rem; border:1px solid var(--border); background:#fff; color:var(--text); border-radius:6px; text-decoration:none }
         .exit-btn:hover{ border-color:#e06666; background:#fff4f4 }
         .brand{ display:flex; align-items:center; gap:.6rem }
         .brand__logo{ width:32px; height:32px; border-radius:6px; background:var(--primary); display:inline-block }
         .brand__title{ font-size:1.05rem; font-weight:bold }
-        .header-tabs{ margin-left:auto; display:flex; gap:.5rem; flex-wrap:wrap }
-        .tab-btn{ padding:.5rem .75rem; background:#fff; border:1px solid var(--border); border-radius:6px; cursor:pointer; color:var(--text) }
-        .tab-btn:hover{ border-color:var(--primary) }
-        .tab-btn.active{ background:var(--primary); color:#fff; border-color:var(--primary) }
-
-        /* ===== Page ===== */
         .page{ max-width:1200px; margin:1rem auto; padding:0 1rem 2rem }
-        .card{ background:var(--card); border-radius:var(--radius); box-shadow:var(--shadow); padding:1rem }
-
-        /* Panels */
-        .tab-panel{ display:none }
-        .tab-panel.active{ display:block }
-        .section-title{ margin:.2rem 0 .75rem; font-size:1.05rem }
+        .card{ background:var(--card); border-radius:var(--radius); box-shadow:var(--shadow); padding:1rem 1.25rem; }
+        .section-title{ margin:.2rem 0 1rem; font-size:1.15rem; font-weight: bold; }
         .helper{ color:var(--muted); font-size:.92rem }
 
-        /* Table */
-        .table{ width:100%; border-collapse:collapse; border:1px solid var(--border); border-radius:6px; overflow:hidden }
-        .table th,.table td{ padding:.6rem .75rem; border-bottom:1px solid var(--border); text-align:left; vertical-align:middle }
-        .table th{ background:#fafafa; color:var(--muted); font-weight:bold }
-        .table tr:last-child td{ border-bottom:none }
-
-        /* Buttons */
-        .actions{ display:flex; gap:.4rem }
-        .btn{ padding:.4rem .65rem; border-radius:6px; border:1px solid var(--border); background:#fff; cursor:pointer }
-        .btn--primary{ background:var(--primary); border-color:var(--primary); color:#fff }
-        .btn--danger{ background:#ef4444; border-color:#ef4444; color:#fff }
-        .btn:hover{ filter:brightness(.98) }
-
-        @media (max-width:760px){ .brand__title{ display:none } }
-
-        /* Forms */
-        .add-form { background:#fff; padding:1rem 1.25rem; border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow); margin-top:1rem; max-width: 720px }
-        .add-form .form-row{ display:grid; grid-template-columns: 1fr 1fr; gap: 0.75rem }
-        .add-form .form-group{ margin-bottom:1rem }
-        .add-form label{ display:block; font-weight:bold; color:var(--muted); margin-bottom:.4rem }
-        .add-form input[type="text"], .add-form input[type="email"], .add-form input[type="password"], .add-form select, .add-form input[type="date"] {
-            width:100%; padding:.6rem; border:1px solid var(--border); border-radius:6px; font-size:.95rem
-        }
-        .add-form input:focus, .add-form select:focus{ outline:none; border-color:var(--primary); box-shadow:0 0 0 2px rgba(0,123,255,.25) }
-        .add-form .submit-row{ display:flex; gap:.5rem; justify-content:flex-end }
-
-        /* Department & Subjects (journals) */
-        .dept-list{ display:grid; grid-template-columns:1fr; gap:.5rem; margin-bottom:1rem }
-        .pill-btn{ display:block; width:100%; text-align:left; padding:.65rem .9rem; border:1px solid var(--border); border-radius:8px; background:#fff; cursor:pointer; font-size:.95rem; transition:all .2s ease }
-        .pill-btn:hover{ border-color:var(--primary); background:#f8faff }
-        .pill-btn.active{ background:var(--primary); color:#fff; border-color:var(--primary); font-weight:bold }
-        .subjects-box{ display:none; background:#fff; border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow); padding:1rem; margin-bottom:1rem }
-        .subjects-box.active{ display:block }
-        .subject-list{ display:grid; grid-template-columns:1fr; gap:.4rem; margin:.75rem 0 .75rem }
-
-        .journal-btn{
-            display:flex;
-            justify-content:space-between;
-            align-items:center;
-            width:100%;
-            text-align:left;
-            padding:.55rem .8rem;
-            border:1px solid var(--border);
-            border-radius:6px;
-            background:#fff;
-            cursor:pointer;
-            font-size:.9rem;
-            transition:all .2s ease;
-            text-decoration:none;
+        /* Список журналів */
+        .journal-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; }
+        .journal-link {
+            display: block;
+            padding: 1rem 1.25rem;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            text-decoration: none;
             color: var(--text);
+            background: #fff;
+            transition: all 0.2s ease;
         }
-        .journal-btn:hover{ border-color:var(--primary); background:#f0f7ff }
-        .journal-btn:active{ background:var(--primary-hover); color:#fff; border-color:var(--primary-hover) }
-        .journal-btn__name { font-weight: 500; }
-        .journal-btn__year { font-size: 0.85rem; color: var(--muted); }
-
-        /* Calendar Tab */
-        .calendar-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-        @media (max-width: 760px) { .calendar-grid { grid-template-columns: 1fr; } }
+        .journal-link:hover {
+            border-color: var(--primary);
+            box-shadow: 0 4px 12px rgba(0,123,255,.1);
+            transform: translateY(-2px);
+        }
+        .journal-link strong {
+            display: block;
+            font-size: 1.1rem;
+            color: var(--primary);
+            margin-bottom: 0.25rem;
+        }
+        .journal-link span {
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
     </style>
 </head>
 <body>
 <header class="site-header">
     <div class="container">
         <div class="header-left">
-            <a class="exit-btn" href="/logout" th:href="@{/logout}">Вийти</a>
             <span class="brand">
                 <span class="brand__logo"></span>
-                <span class="brand__title">Електронний журнал КПДЮ</span>
+                <span class="brand__title">Панель викладача</span>
             </span>
         </div>
-        <nav class="header-tabs" id="adminTabs">
-            <button class="tab-btn" data-tab="teachers">Список викладачів</button>
-            <button class="tab-btn" data-tab="heads">Список голів відділів</button>
-            <button class="tab-btn" data-tab="admins">Список адмінів</button>
-            <button class="tab-btn" data-tab="journals">Журнали</button>
-            <button class="tab-btn" data-tab="kids">Облік дітей</button>
-            <button class="tab-btn" data-tab="calendar">Календар</button>
-        </nav>
+        <a class="exit-btn" href="/logout" th:href="@{/logout}">Вийти</a>
     </div>
 </header>
 
 <main class="page">
     <div class="card">
+        <h3 class="section-title" th:text="'Вітаємо, ' + ${teacherName} + '!'">Вітаємо!</h3>
+        <p class="helper">Вам доступні наступні журнали. Натисніть на журнал, щоб відкрити його.</p>
 
-        <section id="panel-teachers" class="tab-panel">
-            <h3 class="section-title">Викладачі</h3>
-            <table class="table">
-                <thead>
-                <tr>
-                    <th>Ім’я</th><th>Прізвище</th><th>Email</th>
-                    <th>К-ть журналів</th>
-                    <th>Дії</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr th:each="u : ${teachers}">
-                    <td th:text="${u.name}">Імʼя</td>
-                    <td th:text="${u.surname}">Прізвище</td>
-                    <td th:text="${u.email}">email</td>
-                    <td th:text="${#sets.size(u.teachingGroups)}">0</td> <td class="actions">
-                    <a class="btn btn--primary" th:href="@{'/admin/teachers/' + ${u.id} + '/edit'}">Редагувати</a>
-                    <form th:action="@{'/admin/teachers/' + ${u.id} + '/delete'}" method="post" style="display:inline">
-                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                        <button type="submit" class="btn btn--danger" onclick="return confirm('Видалити викладача?')">Видалити</button>
-                    </form>
-                </td>
-                </tr>
-                <tr th:if="${#lists.isEmpty(teachers)}"><td colspan="6" class="helper">Поки що немає викладачів.</td></tr>
-                </tbody>
-            </table>
+        <div class="journal-list" style="margin-top: 1.5rem;">
+            <a class="journal-link"
+               th:each="journal : ${journals}"
+               th:href="@{/journal/{id}(id=${journal.id})}"
+               target="_blank"> <strong th:text="${journal.subject.name}">Назва предмету</strong>
+                <span th:text="${journal.academicYear.name}">202X-202X</span>
+            </a>
 
-            <div style="margin-top:1rem"><button id="showAddTeacherForm" class="btn btn--primary">Додати викладача</button></div>
-
-            <form id="addTeacherForm" class="add-form" th:action="@{/admin/teachers/add}" method="post" style="display:none">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="t_name">Ім’я</label>
-                        <input id="t_name" name="name" type="text" required />
-                    </div>
-                    <div class="form-group">
-                        <label for="t_surname">Прізвище</label>
-                        <input id="t_surname" name="surname" type="text" required />
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="t_email">Email</label>
-                        <input id="t_email" name="email" type="email" required />
-                    </div>
-                    <div class="form-group">
-                        <label for="t_password">Пароль</label>
-                        <input id="t_password" name="password" type="password" required />
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="t_department">Відділ (Застаріле)</label>
-                        <select id="t_department" name="departmentId">
-                            <option value="">-- Не обрано --</option>
-                            <option th:each="dep : ${departments}" th:value="${dep.id}" th:text="${dep.name}"></option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="t_subject">Предмет (Застаріле)</label>
-                        <select id="t_subject" name="subjectId">
-                            <option value="">-- Не обрано --</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="submit-row">
-                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                    <button type="submit" class="btn btn--primary">Підтвердити</button>
-                </div>
-            </form>
-        </section>
-
-        <section id="panel-heads" class="tab-panel">
-            <h3 class="section-title">Голови відділів</h3>
-            <table class="table">
-                <thead><tr><th>Ім’я</th><th>Прізвище</th><th>Email</th><th>Відділ</th><th>Дії</th></tr></thead>
-                <tbody>
-                <tr th:each="u : ${heads}">
-                    <td th:text="${u.name}">Імʼя</td>
-                    <td th:text="${u.surname}">Прізвище</td>
-                    <td th:text="${u.email}">email</td>
-                    <td th:text="${u.department != null ? u.department.name : '-'}">Відділ</td>
-                    <td class="actions">
-                        <a class="btn btn--primary" th:href="@{'/admin/heads/' + ${u.id} + '/edit'}">Редагувати</a>
-                        <form th:action="@{'/admin/heads/' + ${u.id} + '/delete'}" method="post" style="display:inline">
-                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                            <button type="submit" class="btn btn--danger" onclick="return confirm('Видалити голову відділу?')">Видалити</button>
-                        </form>
-                    </td>
-                </tr>
-                <tr th:if="${#lists.isEmpty(heads)}"><td colspan="5" class="helper">Поки що немає голів відділів.</td></tr>
-                </tbody>
-            </table>
-
-            <div style="margin-top:1rem"><button id="showAddHeadForm" class="btn btn--primary">Додати голову відділу</button></div>
-
-            <form id="addHeadForm" class="add-form" th:action="@{/admin/heads/add}" method="post" style="display:none">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="h_name">Ім’я</label>
-                        <input id="h_name" name="name" type="text" required />
-                    </div>
-                    <div class="form-group">
-                        <label for="h_surname">Прізвище</label>
-                        <input id="h_surname" name="surname" type="text" required />
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="h_email">Email</label>
-                        <input id="h_email" name="email" type="email" required />
-                    </div>
-                    <div class="form-group">
-                        <label for="h_password">Пароль</label>
-                        <input id="h_password" name="password" type="password" required />
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="h_department">Відділ</label>
-                        <select id="h_department" name="departmentId">
-                            <option value="">-- Не обрано --</option>
-                            <option th:each="dep : ${departments}" th:value="${dep.id}" th:text="${dep.name}"></option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Предмет</label>
-                        <input type="text" value="—" disabled /> </div>
-                </div>
-                <div class="submit-row">
-                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                    <button type="submit" class="btn btn--primary">Підтвердити</button>
-                </div>
-            </form>
-        </section>
-
-        <section id="panel-admins" class="tab-panel">
-            <h3 class="section-title">Адміністратори</h3>
-            <table class="table">
-                <thead><tr><th>Ім’я</th><th>Прізвище</th><th>Email</th><th>Дії</th></tr></thead>
-                <tbody>
-                <tr th:each="u : ${admins}">
-                    <td th:text="${u.name}">Імʼя</td>
-                    <td th:text="${u.surname}">Прізвище</td>
-                    <td th:text="${u.email}">email</td>
-                    <td class="actions">
-                        <a class="btn btn--primary" th:href="@{'/admin/admins/' + ${u.id} + '/edit'}">Редагувати</a>
-                        <form th:action="@{'/admin/admins/' + ${u.id} + '/delete'}" method="post" style="display:inline">
-                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                            <button type="submit" class="btn btn--danger" onclick="return confirm('Видалити адміністратора?')">Видалити</button>
-                        </form>
-                    </td>
-                </tr>
-                <tr th:if="${#lists.isEmpty(admins)}"><td colspan="4" class="helper">Поки що немає адміністраторів.</td></tr>
-                </tbody>
-            </table>
-
-            <div style="margin-top:1rem"><button id="showAddAdminForm" class="btn btn--primary">Додати адміністратора</button></div>
-
-            <form id="addAdminForm" class="add-form" th:action="@{/admin/admins/add}" method="post" style="display:none">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="a_name">Ім’я</label>
-                        <input id="a_name" name="name" type="text" required />
-                    </div>
-                    <div class="form-group">
-                        <label for="a_surname">Прізвище</label>
-                        <input id="a_surname" name="surname" type="text" required />
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="a_email">Email</label>
-                        <input id="a_email" name="email" type="email" required />
-                    </div>
-                    <div class="form-group">
-                        <label for="a_password">Пароль</label>
-                        <input id="a_password" name="password" type="password" required />
-                    </div>
-                </div>
-                <div class="submit-row">
-                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                    <button type="submit" class="btn btn--primary">Підтвердити</button>
-                </div>
-            </form>
-        </section>
-
-        <section id="panel-journals" class="tab-panel">
-
-            <div class="alert-messages" style="margin-bottom: 1rem;">
-                <div th:if="${journalError}"
-                     style="padding: 1rem; background: #fff4f4; border: 1px solid #e06666; color: #a04040; border-radius: var(--radius);">
-                    <strong>Помилка:</strong> <span th:text="${journalError}"></span>
-                </div>
-                <div th:if="${journalSuccess}"
-                     style="padding: 1rem; background: #f0fff4; border: 1px solid #6aa84f; color: #27501a; border-radius: var(--radius);">
-                    <strong>Успіх:</strong> <span th:text="${journalSuccess}"></span>
-                </div>
-            </div>
-
-            <h3 class="section-title">Журнали (Гуртки)</h3>
-            <p class="helper">Оберіть відділ, щоб побачити журнали (гуртки) та додати нові.</p>
-
-            <div class="dept-list">
-                <button class="pill-btn" th:each="dep : ${departments}" th:text="${dep.name}" th:attr="data-dept-id=${dep.id}">Відділ</button>
-            </div>
-
-            <div class="subjects-box" th:each="dep : ${departments}" th:id="'subjects-' + ${dep.id}">
-                <h4 class="section-title" th:text="'Журнали відділу: ' + ${dep.name}">Журнали відділу</h4>
-
-                <div class="subject-list">
-                    <th:block th:each="journal : ${journals}"
-                              th:if="${journal.subject.department != null and journal.subject.department.id == dep.id}">
-
-                        <div class="journal-btn-wrapper" style="display: flex; gap: 0.5rem; align-items: center;">
-
-                            <a class="journal-btn"
-                               th:href="@{'/journal/' + ${journal.id}}"
-                               target="_blank"
-                               title="Відкрити журнал у новій вкладці"
-                               style="flex-grow: 1;"> <span class="journal-btn__name" th:text="${journal.subject.name}">Назва предмету</span>
-                                <span class="journal-btn__year" th:text="${journal.academicYear.name}">2024-2025</span>
-                            </a>
-
-                            <form th:action="@{/admin/journals/{id}/delete(id=${journal.id})}"
-                                  method="post"
-                                  style="flex-shrink: 0;"
-                                  onsubmit="return confirm('Ви впевнені, що хочете видалити цей журнал? Цю дію неможливо скасувати.');">
-
-                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                                <button type="submit" class="btn btn--danger" title="Видалити журнал">Видалити</button>
-                            </form>
-                        </div>
-                    </th:block>
-                </div>
-
-                <form class="add-form"
-                      th:action="@{/admin/journals/subjects/add}"
-                      method="post"
-                      onsubmit="return confirm('Створити новий ПРЕДМЕТ та ЖУРНАЛ для обраного року?');">
-
-                    <div class="form-group">
-                        <label>Назва нового предмету (гуртка):</label>
-                        <input type="text" name="subjectName" placeholder="Напр., '3D-друк'" required />
-                        <input type="hidden" name="departmentId" th:value="${dep.id}" />
-                    </div>
-
-                    <div class="form-group" style="margin-top: 0.75rem;">
-                        <label for="journal_year">Призначити у навчальний рік:</label>
-                        <select id="journal_year" name="academicYearId" required>
-                            <option value="">-- Оберіть рік --</option>
-                            <option th:each="y : ${academicYears}"
-                                    th:value="${y.id}"
-                                    th:text="${y.name}"></option>
-                        </select>
-                    </div>
-
-                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                    <button type="submit" class="btn btn--primary">Створити</button>
-                </form>
-            </div>
-        </section>
-
-
-        <section id="panel-kids" class="tab-panel">
-            <h3 class="section-title">Облік дітей</h3>
-            <p class="helper">Реєстр учнів/вихованців (у розробці).</p>
-        </section>
-
-        <section id="panel-calendar" class="tab-panel">
-            <h3 class="section-title">Календар та Навчальні Роки</h3>
-            <p class="helper">Керування глобальними налаштуваннями системи.</p>
-
-            <div class="calendar-grid">
-                <div>
-                    <h4 class="section-title">Навчальні Роки</h4>
-                    <table class="table">
-                        <thead>
-                        <tr>
-                            <th>Назва</th>
-                            <th>Дати</th>
-                            <th>Дії</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <tr th:each="year : ${academicYears}">
-                            <td th:text="${year.name}">2024-2025</td>
-                            <td th:text="${#temporals.format(year.startDate, 'dd.MM.yyyy') + ' - ' + #temporals.format(year.endDate, 'dd.MM.yyyy')}"></td>
-                            <td class="actions">
-                                <form th:action="@{'/admin/calendar/years/' + ${year.id} + '/delete'}" method="post" style="display:inline;">
-                                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                                    <button type="submit" class="btn btn--danger" onclick="return confirm('Видалити навчальний рік? УВАГА: Це видалить всі пов\'язані канікули та свята!');">
-                                        Видалити
-                                    </button>
-                                </form>
-                            </td>
-                        </tr>
-                        </tbody>
-                    </table>
-
-                    <form class="add-form" th:action="@{/admin/calendar/years/add}" method="post"
-                          onsubmit="return confirm('Створити новий навчальний рік?');">
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="cal_year_name">Назва (напр., "2025-2026")</label>
-                                <input id="cal_year_name" name="name" type="text" required />
-                            </div>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="cal_year_start">Дата Початку</label>
-                                <input id="cal_year_start" name="startDate" type="date" required />
-                            </div>
-                            <div class="form-group">
-                                <label for="cal_year_end">Дата Кінця</label>
-                                <input id="cal_year_end" name="endDate" type="date" required />
-                            </div>
-                        </div>
-                        <div class="submit-row">
-                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                            <button type="submit" class="btn btn--primary">Створити Рік</button>
-                        </div>
-                    </form>
-                </div>
-
-                <div>
-                    <h4 class="section-title">Канікули</h4>
-                    <table class="table">
-                        <thead>
-                        <tr><th>Назва</th><th>Дати</th><th>Рік</th><th>Дії</th></tr>
-                        </thead>
-                        <tbody>
-                        <tr th:each="v : ${vacations}">
-                            <td th:text="${v.name}"></td>
-                            <td th:text="${#temporals.format(v.startDate, 'dd.MM') + ' - ' + #temporals.format(v.endDate, 'dd.MM')}"></td>
-                            <td th:text="${v.academicYear?.name}"></td>
-                            <td class="actions">
-                                <form th:action="@{'/admin/calendar/vacations/' + ${v.id} + '/delete'}" method="post" style="display:inline;">
-                                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                                    <button type="submit" class="btn btn--danger" onclick="return confirm('Видалити канікули?');">Видалити</button>
-                                </form>
-                            </td>
-                        </tr>
-                        </tbody>
-                    </table>
-
-                    <form class="add-form" th:action="@{/admin/calendar/vacations/add}" method="post"
-                          onsubmit="return confirm('Додати новий період канікул?');">
-                        <div class="form-group">
-                            <label for="cal_vac_name">Назва</label>
-                            <input id="cal_vac_name" name="name" type="text" required placeholder="Напр., 'Зимові канікули'" />
-                        </div>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="cal_vac_start">Дата Початку</label>
-                                <input id="cal_vac_start" name="startDate" type="date" required />
-                            </div>
-                            <div class="form-group">
-                                <label for="cal_vac_end">Дата Кінця</label>
-                                <input id="cal_vac_end" name="endDate" type="date" required />
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="cal_vac_year">Для Навчального Року</label>
-                            <select id="cal_vac_year" name="yearId" required>
-                                <option value="">-- Оберіть рік --</option>
-                                <option th:each="y : ${academicYears}" th:value="${y.id}" th:text="${y.name}"></option>
-                            </select>
-                        </div>
-                        <div class="submit-row">
-                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                            <button type="submit" class="btn btn--primary">Додати Канікули</button>
-                        </div>
-                    </form>
-
-                    <h4 class="section-title" style="margin-top: 1.5rem;">Свята</h4>
-                    <table class="table">
-                        <thead>
-                        <tr><th>Назва</th><th>Дата</th><th>Рік</th><th>Дії</th></tr>
-                        </thead>
-                        <tbody>
-                        <tr th:each="h : ${holidays}">
-                            <td th:text="${h.name}"></td>
-                            <td th:text="${#temporals.format(h.date, 'dd.MM.yyyy')}"></td>
-                            <td th:text="${h.academicYear?.name}"></td>
-                            <td class="actions">
-                                <form th:action="@{'/admin/calendar/holidays/' + ${h.id} + '/delete'}" method="post" style="display:inline;">
-                                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                                    <button type="submit" class="btn btn--danger" onclick="return confirm('Видалити свято?');">Видалити</button>
-                                </form>
-                            </td>
-                        </tr>
-                        </tbody>
-                    </table>
-                    <form class="add-form" th:action="@{/admin/calendar/holidays/add}" method="post"
-                          onsubmit="return confirm('Додати нове свято?');">
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="cal_hol_name">Назва</label>
-                                <input id="cal_hol_name" name="name" type="text" required placeholder="Напр., 'День Незалежності'" />
-                            </div>
-                            <div class="form-group">
-                                <label for="cal_hol_date">Дата</label>
-                                <input id="cal_hol_date" name="date" type="date" required />
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="cal_hol_year">Для Навчального Року</label>
-                            <select id="cal_hol_year" name="yearId" required>
-                                <option value="">-- Оберіть рік --</option>
-                                <option th:each="y : ${academicYears}" th:value="${y.id}" th:text="${y.name}"></option>
-                            </select>
-                        </div>
-                        <div class="submit-row">
-                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                            <button type="submit" class="btn btn--primary">Додати Свято</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-
-        </section>
-
+            <p class="helper" th:if="${#lists.isEmpty(journals)}">
+                Вам ще не призначено жодного журналу. Зверніться до адміністратора.
+            </p>
+        </div>
     </div>
 </main>
-
-<script>
-    // ✅ КРОК 1: Логіка для "Журналів" (департаментів) тепер йде ПЕРШОЮ
-    const journalDeptButtons = document.querySelectorAll('#panel-journals .dept-list .pill-btn');
-    const journalBoxes = document.querySelectorAll('#panel-journals .subjects-box');
-
-    function activateJournalDept(id) {
-        if (!id) return;
-        journalDeptButtons.forEach(b => b.classList.toggle('active', b.dataset.deptId === id));
-        journalBoxes.forEach(box => box.classList.toggle('active', box.id === 'subjects-' + id));
-    }
-
-    journalDeptButtons.forEach(btn => btn.addEventListener('click', () => activateJournalDept(btn.dataset.deptId)));
-
-
-    // ✅ КРОК 2: "Tabs switcher" тепер йде ДРУГИМ
-    (function(){
-        const tabs = document.querySelectorAll('#adminTabs .tab-btn');
-        const panels = {
-            teachers: document.getElementById('panel-teachers'),
-            heads: document.getElementById('panel-heads'),
-            admins: document.getElementById('panel-admins'),
-            journals: document.getElementById('panel-journals'),
-            kids: document.getElementById('panel-kids'),
-            calendar: document.getElementById('panel-calendar')
-        };
-        function activate(name){
-            if (!panels[name]) return; // Захист, якщо вкладки не існує
-
-            tabs.forEach(b=>b.classList.toggle('active', b.dataset.tab===name));
-            Object.keys(panels).forEach(k=>{
-                if (panels[k]) panels[k].classList.toggle('active', k===name);
-            });
-
-            // Оновлюємо URL без перезавантаження
-            try {
-                history.replaceState(null, '', location.pathname + '#' + name);
-            } catch (e) {}
-
-            // ОНОВЛЕННЯ: Якщо активували вкладку Журналів, треба активувати перший відділ
-            if (name === 'journals') {
-                const firstDeptButton = document.querySelector('#panel-journals .dept-list .pill-btn');
-                if (firstDeptButton) {
-                    // Цей виклик тепер безпечний, бо функція визначена вище
-                    activateJournalDept(firstDeptButton.dataset.deptId);
-                }
-            }
-        }
-        tabs.forEach(btn=>btn.addEventListener('click',()=>activate(btn.dataset.tab)));
-
-        // Активувати вкладку з URL (напр., /admin/dashboard#journals)
-        const fromHash = location.hash?.replace('#','');
-        if(fromHash && panels[fromHash]) {
-            activate(fromHash);
-        } else {
-            // За замовчуванням активуємо 'teachers', якщо нічого не вказано
-            activate('teachers');
-        }
-    })();
-
-    // ✅ КРОК 3: Логіка для форм йде останньою
-    // Show/hide add-forms
-    (function(){
-        const map = [
-            ['showAddTeacherForm', 'addTeacherForm'],
-            ['showAddHeadForm', 'addHeadForm'],
-            ['showAddAdminForm', 'addAdminForm']
-        ];
-        map.forEach(([btnId, formId])=>{
-            const btn = document.getElementById(btnId);
-            const form = document.getElementById(formId);
-            if(btn && form){ btn.addEventListener('click', ()=>{
-                form.style.display = form.style.display==='none' || !form.style.display ? 'block' : 'none';
-            }); }
-        });
-    })();
-</script>
-
 </body>
 </html>

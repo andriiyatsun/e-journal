@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8" />
     <title>Адмін-панель</title>
-    <!-- ... (всі ваші стилі <style> залишаються тут без змін) ... -->
     <style>
         :root {
             --bg:#f5f5f5; --card:#fff; --text:#333; --muted:#555;
@@ -72,7 +71,6 @@
         .subjects-box.active{ display:block }
         .subject-list{ display:grid; grid-template-columns:1fr; gap:.4rem; margin:.75rem 0 .75rem }
 
-        /* ✅ ЗМІНА: "subject-btn" тепер "journal-btn" */
         .journal-btn{
             display:flex;
             justify-content:space-between;
@@ -123,13 +121,14 @@
 <main class="page">
     <div class="card">
 
-        <!-- ============ TEACHERS ============ -->
         <section id="panel-teachers" class="tab-panel">
             <h3 class="section-title">Викладачі</h3>
             <table class="table">
                 <thead>
                 <tr>
-                    <th>Ім’я</th><th>Прізвище</th><th>Email</th><th>Відділ</th><th>Предмет (старе)</th><th>Дії</th>
+                    <th>Ім’я</th><th>Прізвище</th><th>Email</th>
+                    <th>К-ть журналів</th>
+                    <th>Дії</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -137,8 +136,7 @@
                     <td th:text="${u.name}">Імʼя</td>
                     <td th:text="${u.surname}">Прізвище</td>
                     <td th:text="${u.email}">email</td>
-                    <td th:text="${u.department != null ? u.department.name : '-'}">Відділ</td>
-                    <td th:text="${u.subject != null ? u.subject.name : '-'}">Предмет</td>
+                    <td th:text="${#sets.size(u.teachingGroups)}">0</td>
                     <td class="actions">
                         <a class="btn btn--primary" th:href="@{'/admin/teachers/' + ${u.id} + '/edit'}">Редагувати</a>
                         <form th:action="@{'/admin/teachers/' + ${u.id} + '/delete'}" method="post" style="display:inline">
@@ -176,22 +174,16 @@
                 </div>
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="t_department">Відділ</label>
+                        <label for="t_department">Відділ (Застаріле)</label>
                         <select id="t_department" name="departmentId">
                             <option value="">-- Не обрано --</option>
                             <option th:each="dep : ${departments}" th:value="${dep.id}" th:text="${dep.name}"></option>
                         </select>
                     </div>
                     <div class="form-group">
-                        <label for="t_subject">Предмет (старе)</label>
+                        <label for="t_subject">Предмет (Застаріле)</label>
                         <select id="t_subject" name="subjectId">
                             <option value="">-- Не обрано --</option>
-                            <!-- ✅ ЗМІНА: Ми завантажуємо Журнали (journals), а не Предмети (subjects)
-                                 Це поле 'subjectId' у UserEntity стає застарілим, але ми лишаємо логіку,
-                                 якщо вона вам потрібна. Для вибору предмета тепер треба інший підхід.
-                                 Поки що лишаємо так, але це поле не буде працювати.
-                            <option th:each="sub : ${subjects}" th:value="${sub.id}" th:text="${sub.name}"></option>
-                            -->
                         </select>
                     </div>
                 </div>
@@ -202,7 +194,6 @@
             </form>
         </section>
 
-        <!-- ============ HEADS ============ -->
         <section id="panel-heads" class="tab-panel">
             <h3 class="section-title">Голови відділів</h3>
             <table class="table">
@@ -258,8 +249,7 @@
                     </div>
                     <div class="form-group">
                         <label>Предмет</label>
-                        <input type="text" value="—" disabled /> <!-- HEAD не має предмету -->
-                    </div>
+                        <input type="text" value="—" disabled /> </div>
                 </div>
                 <div class="submit-row">
                     <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
@@ -268,10 +258,8 @@
             </form>
         </section>
 
-        <!-- ============ ADMINS ============ -->
         <section id="panel-admins" class="tab-panel">
             <h3 class="section-title">Адміністратори</h3>
-            <!-- ... (Таблиця адмінів та форма додавання залишаються без змін) ... -->
             <table class="table">
                 <thead><tr><th>Ім’я</th><th>Прізвище</th><th>Email</th><th>Дії</th></tr></thead>
                 <tbody>
@@ -321,8 +309,8 @@
             </form>
         </section>
 
-        <!-- ============ JOURNALS (✅ ОНОВЛЕНО) ============ -->
         <section id="panel-journals" class="tab-panel">
+
             <div class="alert-messages" style="margin-bottom: 1rem;">
                 <div th:if="${journalError}"
                      style="padding: 1rem; background: #fff4f4; border: 1px solid #e06666; color: #a04040; border-radius: var(--radius);">
@@ -345,37 +333,53 @@
                 <h4 class="section-title" th:text="'Журнали відділу: ' + ${dep.name}">Журнали відділу</h4>
 
                 <div class="subject-list">
-                    <!-- ✅ ЗМІНА: Ітеруємо ${journals}, а не ${subjects} -->
-                    <!-- 'journal' - це наш StudentGroupEntity -->
                     <th:block th:each="journal : ${journals}"
                               th:if="${journal.subject.department != null and journal.subject.department.id == dep.id}">
 
-                        <!-- ✅ ОНОВЛЕНО: Додано target="_blank" та title -->
-                        <a class="journal-btn"
-                           th:href="@{'/journal/' + ${journal.id}}"
-                           target="_blank"
-                           title="Відкрити журнал у новій вкладці">
+                        <div class="journal-btn-wrapper" style="display: flex; gap: 0.5rem; align-items: center;">
 
-                            <span class="journal-btn__name" th:text="${journal.subject.name}">Назва предмету</span>
-                            <!-- ✅ ЗМІНА: Показуємо навчальний рік -->
-                            <span class="journal-btn__year" th:text="${journal.academicYear.name}">2024-2025</span>
-                        </a>
+                            <a class="journal-btn"
+                               th:href="@{'/journal/' + ${journal.id}}"
+                               target="_blank"
+                               title="Відкрити журнал у новій вкладці"
+                               style="flex-grow: 1;">
+                                <span class="journal-btn__name" th:text="${journal.subject.name}">Назва предмету</span>
+                                <span class="journal-btn__year" th:text="${journal.academicYear.name}">2024-2025</span>
+                            </a>
 
+                            <form th:action="@{/admin/journals/{id}/delete(id=${journal.id})}"
+                                  method="post"
+                                  style="flex-shrink: 0;"
+                                  onsubmit="return confirm('Ви впевнені, що хочете видалити цей журнал? Цю дію неможливо скасувати.');">
+
+                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                                <button type="submit" class="btn btn--danger" title="Видалити журнал">Видалити</button>
+                            </form>
+                        </div>
                     </th:block>
                 </div>
 
-                <!-- ✅ ЗМІНА: Форма тепер надсилає запит на НОВИЙ контролер -->
                 <form class="add-form"
                       th:action="@{/admin/journals/subjects/add}"
                       method="post"
-                      onsubmit="return confirm('Ви впевнені, що хочете створити новий ПРЕДМЕТ та ЖУРНАЛ для активного навчального року?');">
+                      onsubmit="return confirm('Створити новий ПРЕДМЕТ та ЖУРНАЛ для обраного року?');">
 
                     <div class="form-group">
-                        <label>Додати новий предмет (це автоматично створить журнал)</label>
-                        <input type="text" name="subjectName" placeholder="Назва предмету (напр., '3D-друк')" required />
-                        <!-- ✅ ЗМІНА: Передаємо ID відділу -->
+                        <label>Назва нового предмету (гуртка):</label>
+                        <input type="text" name="subjectName" placeholder="Напр., '3D-друк'" required />
                         <input type="hidden" name="departmentId" th:value="${dep.id}" />
                     </div>
+
+                    <div class="form-group" style="margin-top: 0.75rem;">
+                        <label for="journal_year">Призначити у навчальний рік:</label>
+                        <select id="journal_year" name="academicYearId" required>
+                            <option value="">-- Оберіть рік --</option>
+                            <option th:each="y : ${academicYears}"
+                                    th:value="${y.id}"
+                                    th:text="${y.name}"></option>
+                        </select>
+                    </div>
+
                     <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
                     <button type="submit" class="btn btn--primary">Створити</button>
                 </form>
@@ -383,40 +387,36 @@
         </section>
 
 
-        <!-- ============ KIDS & CALENDAR placeholders ============ -->
         <section id="panel-kids" class="tab-panel">
             <h3 class="section-title">Облік дітей</h3>
             <p class="helper">Реєстр учнів/вихованців (у розробці).</p>
         </section>
 
-        <!-- ============ CALENDAR (✅ ОНОВЛЕНО) ============ -->
         <section id="panel-calendar" class="tab-panel">
             <h3 class="section-title">Календар та Навчальні Роки</h3>
             <p class="helper">Керування глобальними налаштуваннями системи.</p>
 
             <div class="calendar-grid">
-                <!-- === Секція 1: Навчальні Роки === -->
                 <div>
                     <h4 class="section-title">Навчальні Роки</h4>
                     <table class="table">
                         <thead>
-                        <tr><th>Назва</th><th>Дати</th><th>Активний</th><th>Дії</th></tr>
+                        <tr>
+                            <th>Назва</th>
+                            <th>Дати</th>
+                            <th>Дії</th>
+                        </tr>
                         </thead>
                         <tbody>
                         <tr th:each="year : ${academicYears}">
                             <td th:text="${year.name}">2024-2025</td>
                             <td th:text="${#temporals.format(year.startDate, 'dd.MM.yyyy') + ' - ' + #temporals.format(year.endDate, 'dd.MM.yyyy')}"></td>
-                            <td>
-                                <span th:if="${year.isActive}" style="color:green; font-weight:bold;">ТАК</span>
-                                <span th:unless="${year.isActive}">Ні</span>
-                            </td>
+
                             <td class="actions">
-                                <form th:action="@{/admin/calendar/years/set-active}" method="post" style="display:inline;">
-                                    <input type="hidden" name="yearId" th:value="${year.id}" />
+                                <form th:action="@{'/admin/calendar/years/' + ${year.id} + '/delete'}" method="post" style="display:inline;">
                                     <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                                    <button type"submit" class="btn" th:if="${!year.isActive}"
-                                    onclick="return confirm('Зробити рік ' + th:text="${year.name}" + ' активним? Усі нові журнали будуть створюватись для цього року.');">
-                                    Активувати
+                                    <button type="submit" class="btn btn--danger" onclick="return confirm('Видалити навчальний рік? УВАГА: Це видалить всі пов\'язані канікули та свята!');">
+                                        Видалити
                                     </button>
                                 </form>
                             </td>
@@ -449,7 +449,6 @@
                     </form>
                 </div>
 
-                <!-- === Секція 2: Канікули та Свята === -->
                 <div>
                     <h4 class="section-title">Канікули</h4>
                     <table class="table">
@@ -470,7 +469,6 @@
                         </tr>
                         </tbody>
                     </table>
-
                     <form class="add-form" th:action="@{/admin/calendar/vacations/add}" method="post"
                           onsubmit="return confirm('Додати новий період канікул?');">
                         <div class="form-group">
@@ -490,6 +488,7 @@
                         <div class="form-group">
                             <label for="cal_vac_year">Для Навчального Року</label>
                             <select id="cal_vac_year" name="yearId" required>
+                                <option value="">-- Оберіть рік --</option>
                                 <option th:each="y : ${academicYears}" th:value="${y.id}" th:text="${y.name}"></option>
                             </select>
                         </div>
@@ -533,6 +532,7 @@
                         <div class="form-group">
                             <label for="cal_hol_year">Для Навчального Року</label>
                             <select id="cal_hol_year" name="yearId" required>
+                                <option value="">-- Оберіть рік --</option>
                                 <option th:each="y : ${academicYears}" th:value="${y.id}" th:text="${y.name}"></option>
                             </select>
                         </div>
@@ -543,7 +543,6 @@
                     </form>
                 </div>
             </div>
-
         </section>
 
     </div>
@@ -551,7 +550,6 @@
 
 <script>
     // ✅ КРОК 1: Логіка для "Журналів" (департаментів) тепер йде ПЕРШОЮ
-    // Journals: open subjects for a department
     const journalDeptButtons = document.querySelectorAll('#panel-journals .dept-list .pill-btn');
     const journalBoxes = document.querySelectorAll('#panel-journals .subjects-box');
 
@@ -563,8 +561,8 @@
 
     journalDeptButtons.forEach(btn => btn.addEventListener('click', () => activateJournalDept(btn.dataset.deptId)));
 
+
     // ✅ КРОК 2: "Tabs switcher" тепер йде ДРУГИМ
-    // Він може безпечно викликати activateJournalDept(), оскільки вона вже визначена
     (function(){
         const tabs = document.querySelectorAll('#adminTabs .tab-btn');
         const panels = {
@@ -592,7 +590,7 @@
             if (name === 'journals') {
                 const firstDeptButton = document.querySelector('#panel-journals .dept-list .pill-btn');
                 if (firstDeptButton) {
-                    // Цей виклик тепер безпечний
+                    // Цей виклик тепер безпечний, бо функція визначена вище
                     activateJournalDept(firstDeptButton.dataset.deptId);
                 }
             }
@@ -629,4 +627,3 @@
 
 </body>
 </html>
-
