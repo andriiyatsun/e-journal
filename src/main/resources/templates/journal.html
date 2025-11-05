@@ -10,7 +10,7 @@
             --primary:#007bff; --primary-hover:#0056b3; --border:#ddd;
             --shadow:0 2px 10px rgba(0,0,0,.1); --radius:8px;
             --danger:#ef4444; --danger-hover:#c82333;
-            --warning: #ffc107; /* Для кнопки КТП */
+            --warning: #ffc107;
         }
         * { box-sizing: border-box }
         html, body { height:100%; margin:0; font-family: Arial, sans-serif; background:var(--bg); color:var(--text) }
@@ -68,11 +68,11 @@
         /* Forms */
         .form-group{ margin-bottom:1rem }
         .form-group label{ display:block; font-weight:bold; color:var(--muted); margin-bottom:.4rem; font-size: .9rem; }
-        /* ✅ Стилі для input/select (скопійовані з admin-dashboard) */
+        /* ✅ ВИПРАВЛЕНО: Стилі для input/select */
         .form-group input[type="text"], .form-group input[type="email"], .form-group input[type="password"],
         .form-group input[type="number"], .form-group input[type="date"], .form-group select {
             width:100%; padding:.65rem .75rem; border:1px solid var(--border); border-radius:6px; font-size:.95rem;
-            box-sizing: border-box; /* Важливо, щоб padding не ламав ширину */
+            box-sizing: border-box;
         }
         .form-group input:focus, .form-group select:focus {
             outline:none; border-color:var(--primary); box-shadow:0 0 0 2px rgba(0,123,255,.25)
@@ -112,11 +112,12 @@
             </span>
         </div>
 
+        <!-- НАВІГАЦІЯ ПО ЖУРНАЛУ -->
         <nav class="header-tabs" id="journalTabs">
             <button class="tab-btn active" data-tab="info">Основні відомості</button>
             <button class="tab-btn" data-tab="students">Облік дітей</button>
-            <button class="tab-btn" data-tab="kp1">КП-1 (Теми)</button>
-            <button class="tab-btn" data-tab="kp2">КП-2 (Відвідуваність)</button>
+            <button class="tab-btn" data-tab="kp1">КП-1</button>
+            <button class="tab-btn" data-tab="kp2">КП-2</button>
             <button class="tab-btn" data-tab="safety">Інструктаж</button>
             <button class="tab-btn" data-tab="org">Орг. робота</button>
             <button class="tab-btn" data-tab="method">Метод. робота</button>
@@ -131,6 +132,7 @@
 <main class="page">
     <div class="card">
 
+        <!-- Повідомлення про Успіх/Помилку -->
         <div class="alert-messages">
             <div th:if="${journalError}" class="alert alert--error">
                 <strong>Помилка:</strong> <span th:text="${journalError}"></span>
@@ -140,9 +142,11 @@
             </div>
         </div>
 
+        <!-- ============ ОСНОВНІ ВІДОМОСТІ ============ -->
         <section id="panel-info" class="tab-panel active">
             <h3 class="section-title">Основні відомості</h3>
 
+            <!-- Панель дій (Генерація КТП) -->
             <div class="actions-bar">
                 <form th:action="@{/admin/journals/{id}/generate-ktp(id=${journal.id})}" method="post"
                       onsubmit="return confirm('Це видалить існуючий КТП (крім проведених занять) і згенерує новий на основі дат та розкладу. Ви впевнені?');">
@@ -156,20 +160,11 @@
                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
 
                 <div class="journal-info">
-                    <div class="info-block">
-                        <strong>Журнал (Гурток):</strong>
-                        <span th:text="${journal.subject.name}">Назва предмету</span>
-                    </div>
-                    <div class="info-block">
-                        <strong>Навчальний рік:</strong>
-                        <span th:text="${journal.academicYear.name}">202X-202X</span>
-                    </div>
-                    <div class="info-block">
-                        <strong>Відділ:</strong>
-                        <span th:text="${journal.subject.department.name}">Назва відділу</span>
-                    </div>
-                    <div class="info-block">
-                        <strong>Викладачі:</strong>
+                    <!-- Загальна інформація (читання) -->
+                    <div class="info-block"><strong>Журнал (Гурток):</strong><span th:text="${journal.subject.name}"></span></div>
+                    <div class="info-block"><strong>Навчальний рік:</strong><span th:text="${journal.academicYear.name}"></span></div>
+                    <div class="info-block"><strong>Відділ:</strong><span th:text="${journal.subject.department.name}"></span></div>
+                    <div class="info-block"><strong>Викладачі:</strong>
                         <th:block th:if="${!#lists.isEmpty(journal.teachers)}">
                              <span th:each="teacher, iter : ${journal.teachers}">
                                  <span th:text="${teacher.name + ' ' + teacher.surname}"></span>
@@ -181,8 +176,9 @@
                 </div>
 
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem;">
+                    <!-- Рядок 1 -->
                     <div class="form-group">
-                        <label for="programName">Назва програми </label>
+                        <label for="programName">Назва програми (ТЗ 5.2)</label>
                         <input id="programName" name="programName" type="text" th:value="${journal.programName}" placeholder="Навчальна програма" />
                     </div>
                     <div class="form-group">
@@ -195,6 +191,7 @@
                         </select>
                     </div>
 
+                    <!-- Рядок 2 -->
                     <div class="form-group">
                         <label for="studyYear">Рік навчання</label>
                         <input id="studyYear" name="studyYear" type="text" th:value="${journal.studyYear}" placeholder="Перший, другий..." />
@@ -204,8 +201,9 @@
                         <input id="groupNumber" name="groupNumber" type="text" th:value="${journal.groupNumber}" placeholder="1, 2, 3..." />
                     </div>
 
+                    <!-- Рядок 3 (Ключовий для КТП) -->
                     <div class="form-group">
-                        <label for="hoursPerWeek">Кількість годин на тиждень</label>
+                        <label for="hoursPerWeek">Кількість годин на тиждень (ТЗ 5.2)</label>
                         <input id="hoursPerWeek" name="hoursPerWeek" type="number" th:value="${journal.hoursPerWeek}" required placeholder="Напр., 4" />
                     </div>
                     <div class="form-group">
@@ -214,13 +212,13 @@
                         <p class="helper">Вкажіть **кожен** день та час через кому (ПН, ВТ, СР, ЧТ, ПТ, СБ, НД).</p>
                     </div>
 
+                    <!-- Рядок 4 (Ключовий для КТП) -->
                     <div class="form-group">
-                        <label for="startDate">Дата початку занять</label>
+                        <label for="startDate">Дата початку занять (ТЗ 5.2)</label>
                         <input id="startDate" name="startDate" type="date" th:value="${journal.startDate}" required />
                     </div>
                     <div class="form-group">
-                        <label for="endDate">Дата закінчення занять
-                        </label>
+                        <label for="endDate">Дата закінчення занять (ТЗ 5.2)</label>
                         <input id="endDate" name="endDate" type="date" th:value="${journal.endDate}" required />
                     </div>
                 </div>
@@ -231,15 +229,18 @@
             </form>
         </section>
 
+        <!-- ============ ОБЛІК ДІТЕЙ ============ -->
         <section id="panel-students" class="tab-panel">
             <h3 class="section-title">Облік дітей (Список групи)</h3>
             <p class="helper">Тут буде таблиця зі списком дітей (`journal.students`) та форма для їх додавання/редагування.</p>
         </section>
 
+        <!-- ============ КП-1 (Теми занять: І півріччя) ============ -->
         <section id="panel-kp1" class="tab-panel">
-            <h3 class="section-title">КП-1: Календарно-тематичний план</h3>
+            <h3 class="section-title">КП-1: Календарно-тематичний план (Вересень - Грудень)</h3>
 
-            <table class="table" th:if="${!#lists.isEmpty(lessonPlans)}">
+            <!-- Таблиця КП-1 -->
+            <table class="table" th:if="${!#lists.isEmpty(kp1Plans)}">
                 <thead>
                 <tr>
                     <th>№</th>
@@ -252,7 +253,7 @@
                 </tr>
                 </thead>
                 <tbody>
-                <tr th:each="lesson : ${lessonPlans}">
+                <tr th:each="lesson : ${kp1Plans}">
                     <td th:text="${lesson.lessonNumber}">1</td>
                     <td th:text="${lesson.plannedDate != null ? #temporals.format(lesson.plannedDate, 'dd.MM.yyyy') : '—'}">05.09.2025</td>
                     <td th:text="${lesson.correctedDate != null ? #temporals.format(lesson.correctedDate, 'dd.MM.yyyy') : '—'}">06.09.2025</td>
@@ -266,23 +267,55 @@
                 </tbody>
             </table>
 
-            <p class="helper" th:if="${#lists.isEmpty(lessonPlans)}">
-                Календарно-тематичний план ще не згенеровано.
-                <br>
-                Перейдіть на вкладку "Основні відомості", заповніть розклад, дати початку/кінця та натисніть кнопку "Згенерувати КТП".
+            <p class="helper" th:if="${#lists.isEmpty(kp1Plans)}">
+                У першому півріччі немає згенерованих занять. Перевірте розклад та дати.
             </p>
         </section>
 
+        <!-- ============ КП-2 (Теми занять: ІІ півріччя) ============ -->
         <section id="panel-kp2" class="tab-panel">
-            <h3 class="section-title">КП-2: Облік відвідуваності та змісту роботи</h3>
-            <p class="helper">Тут буде таблиця відвідуваності (з CSV "КП-2") та зміст роботи (з CSV "ВЗР", "ЖЗР" тощо).</p>
+            <h3 class="section-title">КП-2: Календарно-тематичний план (Січень - Червень)</h3>
+
+            <!-- Таблиця КП-2 -->
+            <table class="table" th:if="${!#lists.isEmpty(kp2Plans)}">
+                <thead>
+                <tr>
+                    <th>№</th>
+                    <th class="date-col">Планова дата</th>
+                    <th class="date-col">Скоригована дата</th>
+                    <th class="hours-col">Годин</th>
+                    <th>Тема заняття</th>
+                    <th class="notes-col">Примітка</th>
+                    <th>Дії</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="lesson : ${kp2Plans}">
+                    <td th:text="${lesson.lessonNumber}">1</td>
+                    <td th:text="${lesson.plannedDate != null ? #temporals.format(lesson.plannedDate, 'dd.MM.yyyy') : '—'}">05.09.2025</td>
+                    <td th:text="${lesson.correctedDate != null ? #temporals.format(lesson.correctedDate, 'dd.MM.yyyy') : '—'}">06.09.2025</td>
+                    <td th:text="${lesson.hours}" class="hours-col">2</td>
+                    <td th:text="${lesson.topic}">Тема заняття</td>
+                    <td th:text="${lesson.note}" class="notes-col"></td>
+                    <td>
+                        <button class="btn">Редагувати</button>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+
+            <p class="helper" th:if="${#lists.isEmpty(kp2Plans)}">
+                У другому півріччі немає згенерованих занять. Перевірте розклад та дати.
+            </p>
         </section>
 
+        <!-- ============ ІНСТРУКТАЖ ============ -->
         <section id="panel-safety" class="tab-panel">
             <h3 class="section-title">Інструктаж з БЖ</h3>
             <p class="helper">Тут будуть форми для "Вступний інструктаж", "Інструктаж (дати)" та "Інструктаж (список)".</p>
         </section>
 
+        <!-- ... Інші панелі-заглушки ... -->
         <section id="panel-org" class="tab-panel">
             <h3 class="section-title">Оргмасова робота</h3>
             <p class="helper">Форма для "Оргмасова робота".</p>
@@ -317,7 +350,7 @@
 </main>
 
 <script>
-    // JS для перемикання вкладок (залишається без змін)
+    // JS для перемикання вкладок
     (function(){
         const tabsContainer = document.getElementById('journalTabs');
         if (!tabsContainer) return;

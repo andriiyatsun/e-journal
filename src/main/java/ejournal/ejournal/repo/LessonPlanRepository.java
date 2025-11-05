@@ -11,4 +11,9 @@ public interface LessonPlanRepository extends JpaRepository<LessonPlanEntity, Lo
      * Знаходить усі записи КТП для конкретного журналу, відсортовані за номером заняття.
      */
     List<LessonPlanEntity> findAllByStudentGroupIdOrderByLessonNumberAsc(Long studentGroupId);
+
+    /**
+     * ✅ НОВИЙ МЕТОД: Знаходить проведені заняття для конкретного журналу.
+     */
+    List<LessonPlanEntity> findAllByStudentGroupIdAndIsConductedTrue(Long studentGroupId);
 }

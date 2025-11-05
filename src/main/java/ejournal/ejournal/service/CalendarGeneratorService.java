@@ -1,10 +1,10 @@
 package ejournal.ejournal.service;
 
 import ejournal.ejournal.model.AcademicYearEntity;
-import ejournal.ejournal.model.StudentGroupEntity;
 import ejournal.ejournal.model.Holiday;
-import ejournal.ejournal.model.VacationPeriod;
 import ejournal.ejournal.model.LessonPlanEntity;
+import ejournal.ejournal.model.StudentGroupEntity;
+import ejournal.ejournal.model.VacationPeriod;
 import ejournal.ejournal.repo.LessonPlanRepository;
 import ejournal.ejournal.repo.StudentGroupRepository;
 import ejournal.ejournal.util.ScheduleParser;
@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -52,26 +53,25 @@ public class CalendarGeneratorService {
     /**
      * Основний метод для генерації та збереження записів КТП (LessonPlan)
      * для конкретного Журналу.
-     * @param studentGroupId ID журналу
-     * @param defaultTopic Тема-заглушка для нових записів.
-     * @return Список згенерованих записів LessonPlanEntity.
      */
     @Transactional
     public List<LessonPlanEntity> generateLessonPlanEntries(Long studentGroupId, String defaultTopic) {
         StudentGroupEntity group = studentGroupRepo.findById(studentGroupId)
                 .orElseThrow(() -> new IllegalArgumentException("Журнал не знайдено: " + studentGroupId));
 
-        // 1. Очищаємо всі існуючі записи КТП для перезапису
-        // Це важливо для коректної регенерації КТП
+        // 1. Зберігаємо проведені уроки
+        List<LessonPlanEntity> conductedLessons = lessonPlanRepo.findAllByStudentGroupIdAndIsConductedTrue(studentGroupId);
+
+        // 2. Видаляємо всі незавершені уроки
         group.getLessonPlans().stream()
-                .filter(lp -> !lp.getIsConducted()) // Залишаємо проведені уроки (якщо не потрібно, можна видалити цей фільтр)
+                .filter(lp -> !lp.getIsConducted())
                 .forEach(lessonPlanRepo::delete);
 
-        // Оновлюємо колекцію у пам'яті
-        group.getLessonPlans().removeIf(lp -> !lp.getIsConducted());
+        // 3. Оновлюємо колекцію у пам'яті (для коректного збереження нових записів)
+        group.getLessonPlans().clear();
+        group.getLessonPlans().addAll(conductedLessons);
 
-
-        // 2. Зчитуємо необхідні дані
+        // 4. Зчитуємо необхідні дані
         LocalDate startDate = group.getStartDate();
         LocalDate endDate = group.getEndDate();
         AcademicYearEntity academicYear = group.getAcademicYear();
@@ -89,7 +89,7 @@ public class CalendarGeneratorService {
             throw new IllegalStateException("Журнал не прив'язаний до Навчального року.");
         }
 
-        // 3. Генеруємо дати занять
+        // 5. Генеруємо всі можливі робочі дати
         Set<LocalDate> lessonDates = new HashSet<>();
         LocalDate currentDate = startDate;
 
@@ -103,26 +103,49 @@ public class CalendarGeneratorService {
             currentDate = currentDate.plusDays(1);
         }
 
-        // 4. Сортуємо дати та створюємо LessonPlanEntity
+        // 6. Створюємо мапу дат проведених занять, щоб уникнути дублікатів
+        Set<LocalDate> conductedDates = conductedLessons.stream()
+                .map(LessonPlanEntity::getPlannedDate)
+                .collect(Collectors.toSet());
+
         List<LocalDate> sortedDates = lessonDates.stream().sorted().collect(Collectors.toList());
-        int lessonNumber = 1;
         List<LessonPlanEntity> newLessons = new java.util.ArrayList<>();
 
+        // 7. Додаємо лише нові, не проведені заняття
         for (LocalDate date : sortedDates) {
-            LessonPlanEntity lesson = LessonPlanEntity.builder()
-                    .studentGroup(group)
-                    .lessonNumber(lessonNumber++)
-                    .plannedDate(date)
-                    .hours(hoursPerLesson)
-                    .topic(defaultTopic)
-                    .isConducted(false)
-                    .build();
-
-            newLessons.add(lesson);
+            if (!conductedDates.contains(date)) { // Перевіряємо, чи ця дата вже не була проведена
+                LessonPlanEntity lesson = LessonPlanEntity.builder()
+                        .studentGroup(group)
+                        // LessonNumber буде встановлено пізніше
+                        .plannedDate(date)
+                        .hours(hoursPerLesson)
+                        .topic(defaultTopic)
+                        .isConducted(false)
+                        .build();
+                newLessons.add(lesson);
+            }
         }
 
-        // 5. Зберігаємо в базу та оновлюємо зворотний зв'язок
-        List<LessonPlanEntity> savedLessons = lessonPlanRepo.saveAll(newLessons);
+        // 8. Об'єднуємо та перенумеровуємо ВСІ уроки
+        List<LessonPlanEntity> allLessons = new java.util.ArrayList<>();
+        allLessons.addAll(conductedLessons);
+        allLessons.addAll(newLessons);
+
+        // Сортуємо за датою для коректної нумерації
+        List<LessonPlanEntity> lessonsSortedByDate = allLessons.stream()
+                .sorted(Comparator.comparing(LessonPlanEntity::getPlannedDate))
+                .collect(Collectors.toList());
+
+        // Перенумеровуємо всі уроки послідовно
+        int finalLessonNumber = 1;
+        for (LessonPlanEntity lesson : lessonsSortedByDate) {
+            lesson.setLessonNumber(finalLessonNumber++);
+        }
+
+
+        // 9. Зберігаємо в базу та оновлюємо зворотний зв'язок
+        List<LessonPlanEntity> savedLessons = lessonPlanRepo.saveAll(lessonsSortedByDate);
+        group.getLessonPlans().clear();
         group.getLessonPlans().addAll(savedLessons);
         studentGroupRepo.save(group);
 
