@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDate;
+import java.util.List; // ✅ Імпортуємо List
 
 @Controller
 @RequestMapping("/journal")
@@ -20,33 +21,33 @@ public class JournalAdminController {
 
     private final StudentGroupAdminService groupAdminService;
 
-    /**
-     * Обробляє збереження форми "Основні відомості" (вкладка INFO)
-     */
-    @PostMapping("/{id}/update-details")
-    @PreAuthorize("hasRole('ADMIN') or @journalSecurityService.canViewJournal(authentication, #id)")
-    public String updateJournalDetails(@PathVariable Long id,
-                                       @RequestParam(required = false) String programName,
-                                       @RequestParam(required = false) String programApprovalDate,
-                                       @RequestParam(required = false) String studyLevel,
-                                       @RequestParam(required = false) String studyYear,
-                                       @RequestParam(required = false) Integer hoursPerWeek,
-                                       @RequestParam(required = false) String scheduleJson,
-                                       @RequestParam(required = false) String groupNumber,
-                                       @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-                                       @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
-                                       RedirectAttributes redirectAttributes) {
-        try {
-            groupAdminService.updateGroupDetails(id,
-                    programName, programApprovalDate, studyLevel, studyYear, hoursPerWeek, scheduleJson, groupNumber, startDate, endDate);
+    // ... (існуючий метод updateJournalDetails) ...
 
-            redirectAttributes.addFlashAttribute("journalSuccess", "Основні відомості успішно оновлено.");
-        } catch (IllegalArgumentException e) {
+    /**
+     * ✅ НОВИЙ МЕТОД: Обробляє збереження форм КП-1/КП-2 (редагування тем/приміток)
+     */
+    @PostMapping("/{id}/update-ktp-topics")
+    @PreAuthorize("hasRole('ADMIN') or @journalSecurityService.canViewJournal(authentication, #id)")
+    public String updateKtpTopics(@PathVariable Long id,
+                                  @RequestParam(name = "lessonId") List<Long> lessonIds,
+                                  @RequestParam(name = "topic") List<String> topics,
+                                  @RequestParam(name = "note") List<String> notes,
+                                  @RequestParam(name = "correctedDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) List<LocalDate> correctedDates, // ✅ ДОДАНО
+                                  @RequestParam(name = "fragment") String fragment,
+                                  RedirectAttributes redirectAttributes) {
+
+        try {
+            // ✅ ОНОВЛЕНИЙ ВИКЛИК СЕРВІСУ
+            groupAdminService.updateLessonPlanTopics(id, lessonIds, topics, notes, correctedDates);
+
+            redirectAttributes.addFlashAttribute("journalSuccess", "Теми, дати та примітки успішно оновлено.");
+
+        } catch (IllegalArgumentException | IllegalStateException | SecurityException e) {
             redirectAttributes.addFlashAttribute("journalError", e.getMessage());
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("journalError", "Помилка при оновленні: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("journalError", "Неочікувана системна помилка при оновленні КТП.");
         }
 
-        return "redirect:/journal/" + id + "#info";
+        return "redirect:/journal/" + id + "#" + fragment;
     }
 }

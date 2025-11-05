@@ -68,14 +68,31 @@
         /* Forms */
         .form-group{ margin-bottom:1rem }
         .form-group label{ display:block; font-weight:bold; color:var(--muted); margin-bottom:.4rem; font-size: .9rem; }
-        /* ✅ ВИПРАВЛЕНО: Стилі для input/select */
+
+        /* ✅ Стилі для полів вводу (як у Основних відомостях) */
         .form-group input[type="text"], .form-group input[type="email"], .form-group input[type="password"],
         .form-group input[type="number"], .form-group input[type="date"], .form-group select {
             width:100%; padding:.65rem .75rem; border:1px solid var(--border); border-radius:6px; font-size:.95rem;
             box-sizing: border-box;
         }
-        .form-group input:focus, .form-group select:focus {
-            outline:none; border-color:var(--primary); box-shadow:0 0 0 2px rgba(0,123,255,.25)
+        /* ✅ Стилі для полів у таблиці (щоб поля КП виглядали так само) */
+        .ktp-input {
+            padding: .45rem .65rem;
+            border: 1px solid var(--border) !important;
+            border-radius: 6px;
+            font-size: .95rem;
+            box-sizing: border-box;
+            background: var(--card); /* Для фокусу */
+        }
+        .ktp-input:focus {
+            outline:none;
+            border-color:var(--primary) !important;
+            box-shadow:0 0 0 2px rgba(0,123,255,.25);
+        }
+        .ktp-input[disabled] {
+            background: #f8f8f8;
+            color: var(--muted);
+            border-style: dashed;
         }
 
         /* Buttons & Actions */
@@ -92,6 +109,17 @@
         .alert { padding: 1rem; border: 1px solid; border-radius: var(--radius); }
         .alert--error { background: #fff4f4; border-color: #e06666; color: #a04040; }
         .alert--success { background: #f0fff4; border-color: #6aa84f; color: #27501a; }
+
+        /* Стиль для проведених занять */
+        .conducted-row {
+            background-color: #e9ecef;
+            opacity: 0.8;
+        }
+        .conducted-row td {
+            color: var(--muted);
+            font-style: italic;
+        }
+
 
         @media (max-width:760px){
             .brand__title{ display:none }
@@ -112,7 +140,6 @@
             </span>
         </div>
 
-        <!-- НАВІГАЦІЯ ПО ЖУРНАЛУ -->
         <nav class="header-tabs" id="journalTabs">
             <button class="tab-btn active" data-tab="info">Основні відомості</button>
             <button class="tab-btn" data-tab="students">Облік дітей</button>
@@ -132,7 +159,6 @@
 <main class="page">
     <div class="card">
 
-        <!-- Повідомлення про Успіх/Помилку -->
         <div class="alert-messages">
             <div th:if="${journalError}" class="alert alert--error">
                 <strong>Помилка:</strong> <span th:text="${journalError}"></span>
@@ -142,11 +168,9 @@
             </div>
         </div>
 
-        <!-- ============ ОСНОВНІ ВІДОМОСТІ ============ -->
         <section id="panel-info" class="tab-panel active">
             <h3 class="section-title">Основні відомості</h3>
 
-            <!-- Панель дій (Генерація КТП) -->
             <div class="actions-bar">
                 <form th:action="@{/admin/journals/{id}/generate-ktp(id=${journal.id})}" method="post"
                       onsubmit="return confirm('Це видалить існуючий КТП (крім проведених занять) і згенерує новий на основі дат та розкладу. Ви впевнені?');">
@@ -160,7 +184,6 @@
                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
 
                 <div class="journal-info">
-                    <!-- Загальна інформація (читання) -->
                     <div class="info-block"><strong>Журнал (Гурток):</strong><span th:text="${journal.subject.name}"></span></div>
                     <div class="info-block"><strong>Навчальний рік:</strong><span th:text="${journal.academicYear.name}"></span></div>
                     <div class="info-block"><strong>Відділ:</strong><span th:text="${journal.subject.department.name}"></span></div>
@@ -176,7 +199,6 @@
                 </div>
 
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem;">
-                    <!-- Рядок 1 -->
                     <div class="form-group">
                         <label for="programName">Назва програми (ТЗ 5.2)</label>
                         <input id="programName" name="programName" type="text" th:value="${journal.programName}" placeholder="Навчальна програма" />
@@ -191,7 +213,6 @@
                         </select>
                     </div>
 
-                    <!-- Рядок 2 -->
                     <div class="form-group">
                         <label for="studyYear">Рік навчання</label>
                         <input id="studyYear" name="studyYear" type="text" th:value="${journal.studyYear}" placeholder="Перший, другий..." />
@@ -201,7 +222,6 @@
                         <input id="groupNumber" name="groupNumber" type="text" th:value="${journal.groupNumber}" placeholder="1, 2, 3..." />
                     </div>
 
-                    <!-- Рядок 3 (Ключовий для КТП) -->
                     <div class="form-group">
                         <label for="hoursPerWeek">Кількість годин на тиждень (ТЗ 5.2)</label>
                         <input id="hoursPerWeek" name="hoursPerWeek" type="number" th:value="${journal.hoursPerWeek}" required placeholder="Напр., 4" />
@@ -212,7 +232,6 @@
                         <p class="helper">Вкажіть **кожен** день та час через кому (ПН, ВТ, СР, ЧТ, ПТ, СБ, НД).</p>
                     </div>
 
-                    <!-- Рядок 4 (Ключовий для КТП) -->
                     <div class="form-group">
                         <label for="startDate">Дата початку занять (ТЗ 5.2)</label>
                         <input id="startDate" name="startDate" type="date" th:value="${journal.startDate}" required />
@@ -229,93 +248,148 @@
             </form>
         </section>
 
-        <!-- ============ ОБЛІК ДІТЕЙ ============ -->
         <section id="panel-students" class="tab-panel">
             <h3 class="section-title">Облік дітей (Список групи)</h3>
             <p class="helper">Тут буде таблиця зі списком дітей (`journal.students`) та форма для їх додавання/редагування.</p>
         </section>
 
-        <!-- ============ КП-1 (Теми занять: І півріччя) ============ -->
         <section id="panel-kp1" class="tab-panel">
             <h3 class="section-title">КП-1: Календарно-тематичний план (Вересень - Грудень)</h3>
 
-            <!-- Таблиця КП-1 -->
-            <table class="table" th:if="${!#lists.isEmpty(kp1Plans)}">
-                <thead>
-                <tr>
-                    <th>№</th>
-                    <th class="date-col">Планова дата</th>
-                    <th class="date-col">Скоригована дата</th>
-                    <th class="hours-col">Годин</th>
-                    <th>Тема заняття</th>
-                    <th class="notes-col">Примітка</th>
-                    <th>Дії</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr th:each="lesson : ${kp1Plans}">
-                    <td th:text="${lesson.lessonNumber}">1</td>
-                    <td th:text="${lesson.plannedDate != null ? #temporals.format(lesson.plannedDate, 'dd.MM.yyyy') : '—'}">05.09.2025</td>
-                    <td th:text="${lesson.correctedDate != null ? #temporals.format(lesson.correctedDate, 'dd.MM.yyyy') : '—'}">06.09.2025</td>
-                    <td th:text="${lesson.hours}" class="hours-col">2</td>
-                    <td th:text="${lesson.topic}">Тема заняття</td>
-                    <td th:text="${lesson.note}" class="notes-col"></td>
-                    <td>
-                        <button class="btn">Редагувати</button>
-                    </td>
-                </tr>
-                </tbody>
-            </table>
+            <form th:action="@{/journal/{id}/update-ktp-topics(id=${journal.id})}" method="post" class="ktp-form">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                <input type="hidden" name="fragment" value="kp1" />
 
-            <p class="helper" th:if="${#lists.isEmpty(kp1Plans)}">
-                У першому півріччі немає згенерованих занять. Перевірте розклад та дати.
-            </p>
+                <div style="margin-bottom: 1rem;">
+                    <button type="submit" class="btn btn--primary" onclick="return confirm('Зберегти зміни у темах, датах та примітках КП-1?');">Зберегти теми/дати/примітки КП-1</button>
+                </div>
+
+                <table class="table" th:if="${!#lists.isEmpty(kp1Plans)}">
+                    <thead>
+                    <tr>
+                        <th>№</th>
+                        <th class="date-col">Планова дата</th>
+                        <th class="date-col">Скоригована дата</th>
+                        <th class="hours-col">Годин</th>
+                        <th>Тема заняття (Редагується)</th>
+                        <th class="notes-col">Примітка (Редагується)</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="lesson : ${kp1Plans}" th:classappend="${lesson.isConducted ? 'conducted-row' : ''}">
+                        <td th:text="${lesson.lessonNumber}">1</td>
+
+                        <td class="date-col">
+                            <span th:text="${lesson.plannedDate != null ? #temporals.format(lesson.plannedDate, 'dd.MM.yyyy') : '—'}"></span>
+                        </td>
+
+                        <td class="date-col">
+                            <input type="hidden" name="lessonId" th:value="${lesson.id}" />
+                            <input type="date" name="correctedDate"
+                                   th:value="${lesson.correctedDate != null ? #temporals.format(lesson.correctedDate, 'yyyy-MM-dd') : #temporals.format(lesson.plannedDate, 'yyyy-MM-dd')}"
+                                   th:disabled="${lesson.isConducted}"
+                                   style="width: 100%;"
+                                   class="ktp-input" />
+                        </td>
+
+                        <td th:text="${lesson.hours}" class="hours-col">2</td>
+
+                        <td>
+                            <textarea name="topic" rows="2"
+                                      th:disabled="${lesson.isConducted}"
+                                      style="width: 100%;"
+                                      class="ktp-input"
+                                      th:text="${lesson.topic}"></textarea>
+                        </td>
+
+                        <td>
+                            <input type="text" name="note" th:value="${lesson.note}"
+                                   th:disabled="${lesson.isConducted}"
+                                   style="width: 100%;"
+                                   class="ktp-input" />
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+
+                <p class="helper" th:if="${#lists.isEmpty(kp1Plans)}">
+                    У першому півріччі немає згенерованих занять. Перевірте розклад та дати.
+                </p>
+
+            </form>
         </section>
 
-        <!-- ============ КП-2 (Теми занять: ІІ півріччя) ============ -->
         <section id="panel-kp2" class="tab-panel">
             <h3 class="section-title">КП-2: Календарно-тематичний план (Січень - Червень)</h3>
 
-            <!-- Таблиця КП-2 -->
-            <table class="table" th:if="${!#lists.isEmpty(kp2Plans)}">
-                <thead>
-                <tr>
-                    <th>№</th>
-                    <th class="date-col">Планова дата</th>
-                    <th class="date-col">Скоригована дата</th>
-                    <th class="hours-col">Годин</th>
-                    <th>Тема заняття</th>
-                    <th class="notes-col">Примітка</th>
-                    <th>Дії</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr th:each="lesson : ${kp2Plans}">
-                    <td th:text="${lesson.lessonNumber}">1</td>
-                    <td th:text="${lesson.plannedDate != null ? #temporals.format(lesson.plannedDate, 'dd.MM.yyyy') : '—'}">05.09.2025</td>
-                    <td th:text="${lesson.correctedDate != null ? #temporals.format(lesson.correctedDate, 'dd.MM.yyyy') : '—'}">06.09.2025</td>
-                    <td th:text="${lesson.hours}" class="hours-col">2</td>
-                    <td th:text="${lesson.topic}">Тема заняття</td>
-                    <td th:text="${lesson.note}" class="notes-col"></td>
-                    <td>
-                        <button class="btn">Редагувати</button>
-                    </td>
-                </tr>
-                </tbody>
-            </table>
+            <form th:action="@{/journal/{id}/update-ktp-topics(id=${journal.id})}" method="post" class="ktp-form">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                <input type="hidden" name="fragment" value="kp2" />
 
-            <p class="helper" th:if="${#lists.isEmpty(kp2Plans)}">
-                У другому півріччі немає згенерованих занять. Перевірте розклад та дати.
-            </p>
+                <div style="margin-bottom: 1rem;">
+                    <button type="submit" class="btn btn--primary" onclick="return confirm('Зберегти зміни у темах, датах та примітках КП-2?');">Зберегти теми/дати/примітки КП-2</button>
+                </div>
+
+                <table class="table" th:if="${!#lists.isEmpty(kp2Plans)}">
+                    <thead>
+                    <tr>
+                        <th>№</th>
+                        <th class="date-col">Планова дата</th>
+                        <th class="date-col">Скоригована дата</th>
+                        <th class="hours-col">Годин</th>
+                        <th>Тема заняття (Редагується)</th>
+                        <th class="notes-col">Примітка (Редагується)</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="lesson : ${kp2Plans}" th:classappend="${lesson.isConducted ? 'conducted-row' : ''}">
+                        <td th:text="${lesson.lessonNumber}">1</td>
+
+                        <td class="date-col">
+                            <span th:text="${lesson.plannedDate != null ? #temporals.format(lesson.plannedDate, 'dd.MM.yyyy') : '—'}"></span>
+                        </td>
+
+                        <td class="date-col">
+                            <input type="hidden" name="lessonId" th:value="${lesson.id}" />
+                            <input type="date" name="correctedDate"
+                                   th:value="${lesson.correctedDate != null ? #temporals.format(lesson.correctedDate, 'yyyy-MM-dd') : #temporals.format(lesson.plannedDate, 'yyyy-MM-dd')}"
+                                   th:disabled="${lesson.isConducted}"
+                                   style="width: 100%;"
+                                   class="ktp-input" />
+                        </td>
+
+                        <td th:text="${lesson.hours}" class="hours-col">2</td>
+
+                        <td>
+                            <textarea name="topic" rows="2"
+                                      th:disabled="${lesson.isConducted}"
+                                      style="width: 100%;"
+                                      class="ktp-input"
+                                      th:text="${lesson.topic}"></textarea>
+                        </td>
+
+                        <td>
+                            <input type="text" name="note" th:value="${lesson.note}"
+                                   th:disabled="${lesson.isConducted}"
+                                   style="width: 100%;"
+                                   class="ktp-input" />
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+
+                <p class="helper" th:if="${#lists.isEmpty(kp2Plans)}">
+                    У другому півріччі немає згенерованих занять. Перевірте розклад та дати.
+                </p>
+
+            </form>
         </section>
 
-        <!-- ============ ІНСТРУКТАЖ ============ -->
         <section id="panel-safety" class="tab-panel">
             <h3 class="section-title">Інструктаж з БЖ</h3>
             <p class="helper">Тут будуть форми для "Вступний інструктаж", "Інструктаж (дати)" та "Інструктаж (список)".</p>
         </section>
 
-        <!-- ... Інші панелі-заглушки ... -->
         <section id="panel-org" class="tab-panel">
             <h3 class="section-title">Оргмасова робота</h3>
             <p class="helper">Форма для "Оргмасова робота".</p>
