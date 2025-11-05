@@ -2,8 +2,6 @@ package ejournal.ejournal.model;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDate;
 import java.util.HashSet;
@@ -11,18 +9,13 @@ import java.util.Set;
 
 /**
  * Ця сутність представляє "Журнал" (або "Гурток", "Навчальну Групу").
- * Вона є конкретною реалізацією "Предмету" (Subject) у певному "Навчальному Році" (AcademicYear).
- *
- * ✅ ОНОВЛЕНО: Додано поля для "Основних відомостей" та зв'язок з "Вихованцями".
  */
-// ... (імпорти залишаються без змін)
-
 @Entity
-@Table(name = "student_groups") // Назва таблиці в БД
+@Table(name = "student_groups")
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
+@AllArgsConstructor // ✅ Це викликає помилку через невірний порядок у конструкторі в сервісі
 @Builder
 public class StudentGroupEntity {
 
@@ -30,37 +23,37 @@ public class StudentGroupEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // ... (існуючі поля залишаються без змін)
+    // --- ОСНОВНЕ ПОЛЕ (ПОВИННО БУТИ ПЕРШИМ ДЛЯ ЧИТАННЯ) ---
+    @Column(nullable = false)
+    private String name;
 
     // --- НОВІ ПОЛЯ з "Основних відомостей" ---
-
     @Column(name = "program_name", length = 500)
-    private String programName; // Навчальна програма
+    private String programName;
 
     @Column(name = "program_approval_date")
-    private LocalDate programApprovalDate; // Коли та ким затверджена
+    private LocalDate programApprovalDate;
 
     @Column(name = "study_level", length = 50)
-    private String studyLevel; // Рівень навчання (початковий, основний, вищий)
+    private String studyLevel;
 
     @Column(name = "study_year", length = 50)
-    private String studyYear; // Рік навчання (перший, другий, третій)
+    private String studyYear;
 
     @Column(name = "hours_per_week")
-    private Integer hoursPerWeek; // Кількість годин на тиждень
+    private Integer hoursPerWeek;
 
     @Column(name = "schedule_json", length = 500)
-    // Зберігаємо розклад у вигляді JSON/String (наприклад: "ЧТ: 16:00-17:45, ПТ: 16:00-17:45")
     private String scheduleJson;
 
     @Column(name = "group_number", length = 10)
-    private String groupNumber; // Номер групи (1, 2, 3)
+    private String groupNumber;
 
     @Column(name = "start_date")
-    private LocalDate startDate; // Дата початку занять
+    private LocalDate startDate;
 
     @Column(name = "end_date")
-    private LocalDate endDate; // Дата закінчення занять
+    private LocalDate endDate;
 
     // --- Зв'язки ---
 
@@ -74,7 +67,7 @@ public class StudentGroupEntity {
     @JoinColumn(name = "subject_id", nullable = false, foreignKey = @ForeignKey(name = "fk_group_subject"))
     private SubjectEntity subject;
 
-    // Зв'язок з Викладачами (ManyToMany) - ЗАЛИШАЄТЬСЯ
+    // Зв'язок з Викладачами
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "student_group_teachers",
@@ -86,7 +79,7 @@ public class StudentGroupEntity {
     @Builder.Default
     private Set<UserEntity> teachers = new HashSet<>();
 
-    // Зв'язок з Вихованцями (ManyToMany) - СТВОРЕНО НА ПОПЕРЕДНЬОМУ КРОЦІ
+    // Зв'язок з Вихованцями
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "group_enrollments",
@@ -98,8 +91,26 @@ public class StudentGroupEntity {
     @Builder.Default
     private Set<StudentEntity> students = new HashSet<>();
 
-    // ✅ НОВИЙ ЗВ'ЯЗОК: Календарно-тематичний план (КТП)
+    // Зв'язок з КТП
     @OneToMany(mappedBy = "studentGroup", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @Builder.Default
     private Set<LessonPlanEntity> lessonPlans = new HashSet<>();
+
+    // ✅ ПОВНИЙ КОНСТРУКТОР ДЛЯ НАДІЙНОСТІ (ВКЛЮЧАЄ ВСІ ПОЛЯ, КРІМ ID ТА ЗВ'ЯЗКІВ @Builder.Default)
+    // ID ми не включаємо, бо він генерується. Зв'язки (Set<...>) ми не включаємо, бо вони ініціалізуються @Builder.Default.
+    public StudentGroupEntity(String name, String programName, LocalDate programApprovalDate, String studyLevel, String studyYear, Integer hoursPerWeek, String scheduleJson, String groupNumber, LocalDate startDate, LocalDate endDate, AcademicYearEntity academicYear, SubjectEntity subject) {
+        this.name = name;
+        this.programName = programName;
+        this.programApprovalDate = programApprovalDate;
+        this.studyLevel = studyLevel;
+        this.studyYear = studyYear;
+        this.hoursPerWeek = hoursPerWeek;
+        this.scheduleJson = scheduleJson;
+        this.groupNumber = groupNumber;
+        this.startDate = startDate;
+        this.endDate = endDate;
+        this.academicYear = academicYear;
+        this.subject = subject;
+        // Зв'язки teachers, students, lessonPlans ініціалізуються через @Builder.Default
+    }
 }

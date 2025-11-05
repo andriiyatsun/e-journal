@@ -311,6 +311,8 @@
 
         <section id="panel-journals" class="tab-panel">
 
+
+
             <div class="alert-messages" style="margin-bottom: 1rem;">
                 <div th:if="${journalError}"
                      style="padding: 1rem; background: #fff4f4; border: 1px solid #e06666; color: #a04040; border-radius: var(--radius);">
@@ -347,11 +349,18 @@
                                 <span class="journal-btn__year" th:text="${journal.academicYear.name}">2024-2025</span>
                             </a>
 
+                            <form th:action="@{/admin/journals/{id}/generate-ktp(id=${journal.id})}"
+                                  method="post"
+                                  style="flex-shrink: 0;"
+                                  onsubmit="return confirm('Згенерувати КТП для цього журналу? Це перезапише існуючі планові дати.');">
+                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                                <button type="submit" class="btn btn--warning" title="Згенерувати/Оновити КТП">КТП</button>
+                            </form>
+
                             <form th:action="@{/admin/journals/{id}/delete(id=${journal.id})}"
                                   method="post"
                                   style="flex-shrink: 0;"
-                                  onsubmit="return confirm('Ви впевнені, що хочете видалити цей журнал? Цю дію неможливо скасувати.');">
-
+                                  onsubmit="return confirm('Ви впевнені, що хочете видалити цей журнал? ...');">
                                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
                                 <button type="submit" class="btn btn--danger" title="Видалити журнал">Видалити</button>
                             </form>

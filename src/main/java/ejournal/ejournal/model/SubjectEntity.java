@@ -27,14 +27,11 @@ public class SubjectEntity {
             foreignKey = @ForeignKey(name = "fk_subject_department"))
     private DepartmentEntity department;
 
-    // Зворотний зв'язок: всі журнали (гуртки), створені для цього предмету
+    // ✅ НОВЕ: Зворотний зв'язок, що показує всі журнали (гуртки),
+    // створені для цього предмету в різні роки.
     @OneToMany(mappedBy = "subject", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private Set<StudentGroupEntity> studentGroups = new HashSet<>();
 
-    // ✅ НОВЕ: Зворотний зв'язок: всі записи КТП, пов'язані з цим предметом
-    // (Хоча краще зв'язувати через StudentGroup, цей зв'язок може бути корисний для звітності)
-    @OneToMany(mappedBy = "subject", cascade = CascadeType.ALL, orphanRemoval = true)
-    @Builder.Default
-    private Set<LessonPlanEntity> lessonPlans = new HashSet<>();
+    // ❌ ВИДАЛЕНО НЕКОРЕКТНИЙ ЗВ'ЯЗОК, ЯКИЙ ВИКЛИКАВ ПОМИЛКУ LOMBOK
 }
