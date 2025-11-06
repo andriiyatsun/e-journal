@@ -2,7 +2,7 @@ package ejournal.ejournal.controller;
 
 import ejournal.ejournal.model.LessonPlanEntity;
 import ejournal.ejournal.repo.AcademicYearRepository;
-import ejournal.ejournal.service.CalendarGeneratorService; // ✅ Додаємо
+import ejournal.ejournal.service.CalendarGeneratorService;
 import ejournal.ejournal.service.StudentGroupService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -22,24 +22,27 @@ import java.util.List;
 public class AdminJournalsController {
 
     private final StudentGroupService studentGroupService;
-    private final CalendarGeneratorService calendarGeneratorService; // ✅ Додаємо сервіс календаря
+    private final CalendarGeneratorService calendarGeneratorService;
 
-    @PostMapping("/subjects/add")
-    public String addSubjectAndJournal(@RequestParam String subjectName,
-                                       @RequestParam Long departmentId,
-                                       @RequestParam Long academicYearId,
-                                       RedirectAttributes redirectAttributes) {
+    /**
+     * ✅ ОНОВЛЕНИЙ ЕНДПОІНТ: Створює Журнал (StudentGroup) для існуючого Предмета.
+     */
+    @PostMapping("/add") // ✅ Шлях змінено з "/subjects/add"
+    public String addJournal(@RequestParam Long subjectId, // ✅ Змінено: ID предмета
+                             @RequestParam Long academicYearId,
+                             RedirectAttributes redirectAttributes) {
 
         try {
-            studentGroupService.createSubjectAndJournal(subjectName, departmentId, academicYearId);
+            // ✅ Змінено: Викликаємо новий метод сервісу
+            studentGroupService.createJournal(subjectId, academicYearId);
             redirectAttributes.addFlashAttribute("journalSuccess",
-                    "Журнал для предмету '" + subjectName + "' успішно створено.");
+                    "Журнал для обраного предмету успішно створено.");
 
         } catch (IllegalArgumentException | IllegalStateException e) {
             redirectAttributes.addFlashAttribute("journalError", e.getMessage());
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("journalError",
-                    "Виникла неочікувана системна помилка. Зверніться до адміністратора.");
+                    "Виникла неочікувана системна помилка при створенні журналу.");
         }
 
         return "redirect:/admin/dashboard#journals";
@@ -59,7 +62,7 @@ public class AdminJournalsController {
     }
 
     /**
-     * ✅ НОВИЙ МЕТОД: Обробляє запит на генерацію КТП.
+     * ✅ (Без змін) Обробляє запит на генерацію КТП.
      */
     @PostMapping("/{id}/generate-ktp")
     public String generateKtp(@PathVariable Long id, RedirectAttributes redirectAttributes) {

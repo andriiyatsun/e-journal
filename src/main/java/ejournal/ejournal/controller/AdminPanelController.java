@@ -4,9 +4,11 @@ import ejournal.ejournal.repo.AcademicYearRepository;
 import ejournal.ejournal.repo.DepartmentRepository;
 import ejournal.ejournal.repo.HolidayRepository;
 import ejournal.ejournal.repo.StudentGroupRepository;
+import ejournal.ejournal.repo.SubjectRepository; // ✅ Імпорт
 import ejournal.ejournal.repo.UserRepository;
 import ejournal.ejournal.repo.VacationPeriodRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort; // ✅ Імпорт
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -14,7 +16,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-// ✅ ВАЖЛИВО: Переконайся, що імпорт саме цей:
 import org.springframework.transaction.annotation.Transactional;
 
 @Controller
@@ -26,6 +27,7 @@ public class AdminPanelController {
     private final UserRepository userRepository;
     private final DepartmentRepository departmentRepository;
     private final StudentGroupRepository studentGroupRepository;
+    private final SubjectRepository subjectRepository; // ✅ Додано
 
     // Репозиторії для вкладки "Календар"
     private final AcademicYearRepository academicYearRepository;
@@ -34,7 +36,7 @@ public class AdminPanelController {
 
     /** Рендер твоєї головної admin-dashboard.html */
 
-    @Transactional(readOnly = true) // ✅ Ця анотація триматиме сесію БД відкритою
+    @Transactional(readOnly = true)
     @GetMapping("/dashboard")
     public String dashboard(@RequestParam(value = "tab", required = false) String tab,
                             Model model) {
@@ -45,6 +47,8 @@ public class AdminPanelController {
 
         // === Вкладка Журналів ===
         model.addAttribute("departments", departmentRepository.findAll());
+        // ✅ Додаємо список Предметів, відсортованих за назвою
+        model.addAttribute("subjects", subjectRepository.findAll(Sort.by("name")));
         model.addAttribute("journals", studentGroupRepository.findAll());
 
         // === Вкладка Календаря ===
