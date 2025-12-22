@@ -1,0 +1,191 @@
+:root {
+    --bg:#f5f5f5; --card:#fff; --text:#333; --muted:#555;
+    --primary:#007bff; --primary-hover:#0056b3; --border:#ddd;
+    --shadow:0 2px 10px rgba(0,0,0,.1); --radius:8px
+}
+* { box-sizing: border-box }
+html, body { height:100%; margin:0; font-family: Arial, sans-serif; background:var(--bg); color:var(--text) }
+
+/* ===== Header ===== */
+.site-header{ background:var(--card); box-shadow:var(--shadow); position:sticky; top:0; z-index:50 }
+.site-header .container{ max-width:1200px; margin:0 auto; padding:.6rem 1rem; display:flex; align-items:center; gap:.75rem }
+.header-left{ display:flex; align-items:center; gap:.75rem }
+.exit-btn{ padding:.45rem .7rem; border:1px solid var(--border); background:#fff; color:var(--text); border-radius:6px; text-decoration:none }
+.exit-btn:hover{ border-color:#e06666; background:#fff4f4 }
+.brand{ display:flex; align-items:center; gap:.6rem }
+.brand__logo{ width:32px; height:32px; border-radius:6px; background:var(--primary); display:inline-block }
+.brand__title{ font-size:1.05rem; font-weight:bold }
+.header-tabs{ margin-left:auto; display:flex; gap:.5rem; flex-wrap:wrap }
+.tab-btn{ padding:.5rem .75rem; background:#fff; border:1px solid var(--border); border-radius:6px; cursor:pointer; color:var(--text) }
+.tab-btn:hover{ border-color:var(--primary) }
+.tab-btn.active{ background:var(--primary); color:#fff; border-color:var(--primary) }
+
+/* ===== Page ===== */
+.page{ max-width:1200px; margin:1rem auto; padding:0 1rem 2rem }
+.card{ background:var(--card); border-radius:var(--radius); box-shadow:var(--shadow); padding:1rem }
+
+/* Panels */
+.tab-panel{ display:none }
+.tab-panel.active{ display:block }
+.section-title{ margin:.2rem 0 .75rem; font-size:1.05rem }
+.helper{ color:var(--muted); font-size:.92rem }
+
+/* Table */
+.table{ width:100%; border-collapse:collapse; border:1px solid var(--border); border-radius:6px; overflow:hidden }
+.table th,.table td{ padding:.6rem .75rem; border-bottom:1px solid var(--border); text-align:left; vertical-align:middle }
+.table th{ background:#fafafa; color:var(--muted); font-weight:bold }
+.table tr:last-child td{ border-bottom:none }
+
+/* Buttons */
+.actions{ display:flex; gap:.4rem; align-items: center; }
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: .45rem .7rem;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: #fff;
+    cursor: pointer;
+
+    /* Шрифти (з попереднього кроку) */
+    text-decoration: none !important;
+    font-family: inherit;
+    font-size: 0.9rem;
+    line-height: 1.2;
+    color: var(--text);
+
+    transition: all 0.2s ease-in-out;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05); /* Легка тінь у спокої */
+}
+
+/* Ефект при наведенні мишкою */
+.btn:hover {
+    transform: translateY(-2px);       /* Піднімаємо кнопку на 2 пікселі */
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15); /* Збільшуємо тінь (ефект глибини) */
+    filter: brightness(0.95);          /* Трохи затемнюємо колір */
+}
+
+/* Ефект при натисканні (клік) */
+.btn:active {
+    transform: translateY(0);          /* Повертаємо на місце */
+    box-shadow: none;                  /* Прибираємо тінь */
+    filter: brightness(0.9);           /* Ще більше затемнюємо */
+    transition: none;                  /* Миттєва реакція на клік */
+}
+
+.btn--primary{ background:var(--primary); border-color:var(--primary); color:#fff }
+/* Важливо: при наведенні колір тексту має лишатися білим */
+.btn--primary:hover { color: #fff; }
+
+.btn--danger{ background:#ef4444; border-color:#ef4444; color:#fff }
+.btn--danger:hover { color: #fff; }
+
+.btn--warning{ background:#ffc107; border-color:#ffc107; color:#212529 }
+
+.btn:hover{ filter:brightness(.98) }
+
+@media (max-width:760px){ .brand__title{ display:none } }
+
+/* Forms */
+.add-form { background:#fff; padding:1rem 1.25rem; border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow); margin-top:1rem; max-width: 720px }
+.add-form .form-row{ display:grid; grid-template-columns: 1fr 1fr; gap: 0.75rem }
+.add-form .form-group{ margin-bottom:1rem }
+.add-form label{ display:block; font-weight:bold; color:var(--muted); margin-bottom:.4rem }
+.add-form input[type="text"], .add-form input[type="email"], .add-form input[type="password"], .add-form select, .add-form input[type="date"] {
+    width:100%; padding:.6rem; border:1px solid var(--border); border-radius:6px; font-size:.95rem
+}
+.add-form input:focus, .add-form select:focus{ outline:none; border-color:var(--primary); box-shadow:0 0 0 2px rgba(0,123,255,.25) }
+.add-form .submit-row{ display:flex; gap:.5rem; justify-content:flex-end }
+
+/* Стилі для Журналів */
+.dept-list{ display:grid; grid-template-columns:1fr; gap:.5rem; margin-bottom:1rem }
+
+.dept-pill-btn{
+    display:block; width:100%; text-align:left; padding:.65rem .9rem; border:1px solid var(--border); border-radius:8px; background:#fff; cursor:pointer; font-size:.95rem; transition:all .2s ease
+}
+.dept-pill-btn:hover{ border-color:var(--primary); background:#f8faff }
+.dept-pill-btn.active{ background:var(--primary); color:#fff; border-color:var(--primary); font-weight:bold }
+
+.dept-box{
+    display:none; background:#fff; border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow); padding:1rem; margin-bottom:1rem
+}
+.dept-box.active{ display:block }
+
+.subject-list{ display:grid; grid-template-columns:1fr; gap:.5rem; margin:.75rem 0 .75rem }
+
+.subject-pill-wrapper {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.subject-pill-btn {
+    flex-grow: 1;
+    display:block; text-align:left; padding:.5rem .8rem; border:1px solid var(--border); border-radius:8px; background:#fafafa; cursor:pointer; font-size:.9rem; transition:all .2s ease
+}
+.subject-pill-btn:hover { border-color: var(--primary-hover); }
+.subject-pill-btn.active { background: var(--primary-hover); border-color: var(--primary-hover); color: #fff; }
+
+.btn--delete-subject {
+    flex-shrink: 0;
+    padding: 0.4rem 0.6rem;
+    font-size: 1rem;
+    line-height: 1;
+    background: #fff5f5;
+    border-color: #e06666;
+    color: #a04040;
+    cursor: pointer;
+}
+.btn--delete-subject:hover {
+    background: #ef4444;
+    border-color: #ef4444;
+    color: #fff;
+}
+
+.journal-list-box {
+    display: none;
+    background: #fdfdfd;
+    padding: 1rem;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+.journal-list-box.active { display: block; }
+
+.journal-list-items {
+    display: grid; grid-template-columns: 1fr; gap: 0.4rem;
+}
+
+.journal-btn{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    width:100%;
+    text-align:left;
+    padding:.55rem .8rem;
+    border:1px solid var(--border);
+    border-radius:6px;
+    background:#fff;
+    cursor:pointer;
+    font-size:.9rem;
+    transition:all .2s ease;
+    text-decoration:none;
+    color: var(--text);
+}
+.journal-btn:hover{ border-color:var(--primary); background:#f0f7ff }
+.journal-btn:active{ background:var(--primary-hover); color:#fff; border-color:var(--primary-hover) }
+.journal-btn__name { font-weight: 500; }
+.journal-btn__year { font-size: 0.85rem; color: var(--muted); }
+
+/* Calendar Tab */
+.calendar-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+@media (max-width: 760px) { .calendar-grid { grid-template-columns: 1fr; } }
+
+/* Alert Messages */
+.alert-messages { margin-bottom: 1rem; }
+.alert { padding: 1rem; border: 1px solid; border-radius: var(--radius); }
+.alert--error { background: #fff4f4; border-color: #e06666; color: #a04040; }
+.alert--success { background: #f0fff4; border-color: #6aa84f; color: #27501a; }
