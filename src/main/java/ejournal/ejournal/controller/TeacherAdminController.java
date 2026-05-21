@@ -10,6 +10,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model; // ✅ Імпортуємо Model
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List; // ✅ Імпортуємо List
 import java.util.Set;   // ✅ Імпортуємо Set
@@ -50,11 +51,17 @@ public class TeacherAdminController {
                       @RequestParam String surname,
                       @RequestParam String email,
                       @RequestParam String password,
-                      @RequestParam(required = false) Long departmentId, // Це поле застаріле
-                      @RequestParam(required = false) Long subjectId) {  // Це поле застаріле
-        // Примітка: метод createTeacher все ще використовує застарілі departmentId/subjectId
-        // Його теж варто оновити, щоб він приймав 'journalIds'
-        adminUserService.createTeacher(name, surname, email, password, departmentId, subjectId);
+                      RedirectAttributes redirectAttributes) { // Додано RedirectAttributes
+        try {
+            adminUserService.createTeacher(name, surname, email, password);
+            redirectAttributes.addFlashAttribute("teacherSuccess", "Викладача успішно додано.");
+        } catch (IllegalArgumentException e) {
+            // Перехоплюємо нашу помилку і передаємо повідомлення на фронт
+            redirectAttributes.addFlashAttribute("teacherError", e.getMessage());
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("teacherError", "Системна помилка при додаванні викладача.");
+        }
+
         return "redirect:/admin/dashboard#teachers";
     }
 

@@ -37,25 +37,10 @@ public class AdminUserService {
     public UserEntity createTeacher(String name,
                                     String surname,
                                     String email,
-                                    String rawPassword,
-                                    Long departmentId,
-                                    Long subjectId) {
-        // ... (Логіка створення залишається без змін, хоча її теж варто оновити)
-        // ... (поточна логіка методу)
-        DepartmentEntity dep = null;
-        if (departmentId != null) {
-            dep = departmentRepo.findById(departmentId)
-                    .orElseThrow(() -> new IllegalArgumentException("Department not found: " + departmentId));
-        }
+                                    String rawPassword) {
 
-        SubjectEntity sub = null;
-        if (subjectId != null) {
-            sub = subjectRepo.findById(subjectId)
-                    .orElseThrow(() -> new IllegalArgumentException("Subject not found: " + subjectId));
-        }
-
-        if (dep != null && sub != null && !sub.getDepartment().getId().equals(dep.getId())) {
-            throw new IllegalArgumentException("Subject " + sub.getName() + " does not belong to department " + dep.getName());
+        if (userRepo.findByEmail(email).isPresent() || userRepo.findByUsername(email).isPresent()) {
+            throw new IllegalArgumentException("Користувач з таким email (" + email + ") вже існує!");
         }
 
         RoleEntity r = getRole("ROLE_TEACHER");
@@ -64,22 +49,30 @@ public class AdminUserService {
         u.setName(name);
         u.setSurname(surname);
         u.setEmail(email);
-        u.setUsername(email);
+        u.setUsername(email); // Використовуємо email як логін
         u.setPassword(passwordEncoder.encode(rawPassword));
         u.setEnabled(true);
-        u.setDepartment(dep);
-        u.setSubject(sub);
+
+        // Відділ та предмет більше не призначаються при створенні.
+        // Доступ до груп (журналів) налаштовується через метод updateTeacher.
+        u.setDepartment(null);
+        u.setSubject(null);
+
         u.setRole(r);
 
         return userRepo.save(u);
     }
 
-    // ... (Методи createHead та createAdmin залишаються без змін)
     public UserEntity createHead(String name,
                                  String surname,
                                  String email,
                                  String rawPassword,
                                  Long departmentId) {
+        // Перевірка унікальності
+        if (userRepo.findByEmail(email).isPresent() || userRepo.findByUsername(email).isPresent()) {
+            throw new IllegalArgumentException("Користувач з таким email (" + email + ") вже існує!");
+        }
+
         DepartmentEntity dep = null;
         if (departmentId != null) {
             dep = departmentRepo.findById(departmentId)
@@ -103,6 +96,11 @@ public class AdminUserService {
                                   String surname,
                                   String email,
                                   String rawPassword) {
+        // Перевірка унікальності
+        if (userRepo.findByEmail(email).isPresent() || userRepo.findByUsername(email).isPresent()) {
+            throw new IllegalArgumentException("Користувач з таким email (" + email + ") вже існує!");
+        }
+
         RoleEntity r = getRole("ROLE_ADMIN");
         UserEntity u = new UserEntity();
         u.setName(name);

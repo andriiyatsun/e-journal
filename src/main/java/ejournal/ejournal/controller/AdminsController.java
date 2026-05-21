@@ -17,6 +17,18 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class AdminsController {
 
     private final AdminUserService adminUserService;
+    private final UserRepository userRepository;
+
+    // --- НОВИЙ МЕТОД: Показує сторінку (GET запит) ---
+    @GetMapping("/{id}/edit")
+    public String showEditForm(@PathVariable Long id, Model model) {
+        UserEntity admin = userRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Адміністратора не знайдено: " + id));
+
+        model.addAttribute("user", admin);
+        model.addAttribute("role", "ROLE_ADMIN"); // Кажемо шаблону, що це Адмін
+        return "admin-user-edit";
+    }
 
     @PostMapping("/add")
     public String add(@RequestParam String name,
@@ -27,6 +39,7 @@ public class AdminsController {
         return "redirect:/admin/dashboard#admins";
     }
 
+    // --- ЗБЕРЕЖЕННЯ ДАНИХ (POST запит) ---
     @PostMapping("/{id}/edit")
     public String edit(@PathVariable Long id,
                        @RequestParam String name,
