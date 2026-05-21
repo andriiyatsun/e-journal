@@ -29,7 +29,6 @@
             <button class="tab-btn" data-tab="method">Метод. робота</button>
             <button class="tab-btn" data-tab="creative">Творчі досягнення</button>
             <button class="tab-btn" data-tab="report">Статзвіт</button>
-            <button class="tab-btn" data-tab="vacation">Відпустки/Відрядження</button>
             <button class="tab-btn" data-tab="remarks">Зауваження</button>
         </nav>
     </div>
@@ -289,14 +288,31 @@
             <p class="helper">Форма для "Статзвіт".</p>
         </section>
 
-        <section id="panel-vacation" class="tab-panel">
-            <h3 class="section-title">Відпустки, відрядження</h3>
-            <p class="helper">Форма для "Відпустки, відрядження".</p>
-        </section>
-
         <section id="panel-remarks" class="tab-panel">
             <h3 class="section-title">Зауваження</h3>
-            <p class="helper">Форма для "Зауваження".</p>
+
+            <form th:if="${#authorization.expression('hasRole(''HEAD'')')}"
+                  th:action="@{/journal/{id}/add-remark(id=${journal.id})}" method="post" class="card" style="margin-bottom: 1rem;">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                <div class="form-group">
+                    <label>Додати зауваження:</label>
+                    <textarea name="text" class="ktp-input" style="width:100%" required></textarea>
+                </div>
+                <button type="submit" class="btn btn--primary">Зберегти зауваження</button>
+            </form>
+
+            <table class="table">
+                <thead>
+                <tr><th>Дата</th><th>Зауваження</th><th>Автор</th></tr>
+                </thead>
+                <tbody>
+                <tr th:each="r : ${remarks}">
+                    <td th:text="${#temporals.format(r.date, 'dd.MM.yyyy')}"></td>
+                    <td th:text="${r.text}"></td>
+                    <td th:text="${r.authorName}"></td>
+                </tr>
+                </tbody>
+            </table>
         </section>
 
     </div>

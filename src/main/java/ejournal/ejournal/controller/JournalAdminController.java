@@ -4,6 +4,7 @@ import ejournal.ejournal.service.StudentGroupAdminService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -78,5 +79,25 @@ public class JournalAdminController {
         }
 
         return "redirect:/journal/" + id + "#" + fragment;
+    }
+
+    @PostMapping("/{id}/update-achievements")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('HEAD')")
+    public String updateAchievements(@PathVariable Long id,
+                                     @RequestParam String description,
+                                     RedirectAttributes ra) {
+        // Логіка збереження через сервіс...
+        return "redirect:/journal/" + id + "#creative";
+    }
+
+    @PostMapping("/{id}/add-remark")
+    @PreAuthorize("hasRole('HEAD')") // Тільки керівник
+    public String addRemark(@PathVariable Long id,
+                            @RequestParam String text,
+                            Authentication auth,
+                            RedirectAttributes ra) {
+        String author = auth.getName();
+        // Логіка збереження зауваження
+        return "redirect:/journal/" + id + "#remarks";
     }
 }

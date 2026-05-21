@@ -1,10 +1,6 @@
 package ejournal.ejournal.service;
 
-import ejournal.ejournal.model.AcademicYearEntity;
-import ejournal.ejournal.model.Holiday;
-import ejournal.ejournal.model.LessonPlanEntity;
-import ejournal.ejournal.model.StudentGroupEntity;
-import ejournal.ejournal.model.VacationPeriod;
+import ejournal.ejournal.model.*;
 import ejournal.ejournal.repo.LessonPlanRepository;
 import ejournal.ejournal.repo.StudentGroupRepository;
 import ejournal.ejournal.util.ScheduleParser;

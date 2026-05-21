@@ -1,5 +1,6 @@
 package ejournal.ejournal.model;
 
+
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -37,4 +38,3 @@ public class VacationPeriod {
     @JoinColumn(name = "academic_year_id", nullable = false, foreignKey = @ForeignKey(name = "fk_vacation_academic_year"))
     private AcademicYearEntity academicYear;
 }
-
