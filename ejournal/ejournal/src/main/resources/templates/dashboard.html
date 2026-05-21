@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="uk" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Панель управління</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        .header {
+            background: white;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .content {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .logout-btn {
+            background-color: #dc3545;
+            color: white;
+            padding: 0.5rem 1rem;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+
+        .logout-btn:hover {
+            background-color: #c82333;
+        }
+    </style>
+</head>
+<body>
+<div class="header">
+    <h1>Електронний журнал КПДЮ></h1>
+    <a href="/logout" class="logout-btn">Вийти</a>
+</div>
+
+<div class="content">
+    <h2>Добро пожалувати до системи!</h2>
+    <p>Ви успішно увійшли до системи електронного журналу.</p>
+    <p>Тут буде основний функціонал системи.</p>
+</div>
+</body>
+</html>

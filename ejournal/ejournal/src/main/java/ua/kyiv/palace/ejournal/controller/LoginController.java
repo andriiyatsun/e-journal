@@ -6,9 +6,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 @Controller
 public class LoginController {
 
-    @GetMapping("/login")
-    public String loginPage() {
-        return "login-page";  // Переконайтесь, що вказуєте на правильну назву шаблону
-    }
+    //@GetMapping("/login")
+    //public String loginPage() {
+    //    return "login";  // Переконайтесь, що вказуєте на правильну назву шаблону
+    //}
 }
 
