@@ -22,4 +22,6 @@ public interface StudentGroupRepository extends JpaRepository<StudentGroupEntity
      * Використовується для перевірки на унікальність (Один предмет - один журнал на рік).
      */
     Optional<StudentGroupEntity> findBySubjectIdAndAcademicYearId(Long subjectId, Long academicYearId);
+
+    List<StudentGroupEntity> findAllBySubjectDepartmentId(Long departmentId);
 }

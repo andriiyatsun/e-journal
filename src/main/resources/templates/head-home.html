@@ -1,99 +1,76 @@
 <!DOCTYPE html>
 <html lang="uk" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8" />
-    <title>Панель голови відділу</title>
-    <link rel="stylesheet" th:href="@{/css/head-home.css}" />
+    <meta charset="UTF-8">
+    <title>Панель Голови Відділу</title>
+    <link rel="stylesheet" th:href="@{/css/admin-dashboard.css}" />
+    <link rel="stylesheet" th:href="@{/css/journal.css}" />
 </head>
 <body>
+
 <header class="site-header">
     <div class="container">
         <div class="header-left">
-            <a class="exit-btn" href="/logout" th:href="@{/logout}">Вийти</a>
             <span class="brand">
                 <span class="brand__logo"></span>
-                <span class="brand__title" th:text="'Журнали &quot;' + ${head.department.name} + '&quot;'">Журнали "Назва департаменту"</span>
+                <span class="brand__title">Панель Голови Відділу</span>
             </span>
         </div>
-        <nav class="header-tabs" id="headTabs">
-            <button class="tab-btn active" data-tab="overview">Огляд</button>
-            <button class="tab-btn" data-tab="subjects">Предмети</button>
-            <button class="tab-btn" data-tab="teachers">Викладачі</button>
-            <button class="tab-btn" data-tab="reports">Звіти</button>
+        <nav class="header-tabs">
+            <button class="tab-btn active">Журнали відділу</button>
         </nav>
+        <div class="header-right">
+            <form th:action="@{/logout}" method="post" style="margin: 0;">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                <button type="submit" class="btn btn--danger">Вийти</button>
+            </form>
+        </div>
     </div>
 </header>
 
 <main class="page">
     <div class="card">
+        <h3 class="section-title">
+            Відділ: <span th:text="${departmentName}" style="color: var(--primary);"></span>
+        </h3>
 
-        <section id="panel-overview" class="tab-panel active">
-            <h3 class="section-title" th:text="'Огляд відділу: ' + ${head.department.name}">Огляд відділу</h3>
-            <p class="helper">Тут буде загальна статистика відділу.</p>
-        </section>
+        <div th:if="${departmentName == 'Не призначено'}" class="alert alert--warning" style="margin-bottom: 1rem;">
+            <strong>Увага:</strong> Вам ще не призначено відділ. Зверніться до адміністратора.
+        </div>
 
-        <section id="panel-subjects" class="tab-panel">
-            <h3 class="section-title">Предмети відділу</h3>
-            <p class="helper">Список предметів буде тут.</p>
-        </section>
+        <table class="table" th:if="${!#lists.isEmpty(journals)}">
+            <thead>
+            <tr>
+                <th>Назва гуртка (Журналу)</th>
+                <th>Навчальний рік</th>
+                <th>Викладачі</th>
+                <th style="width: 150px; text-align: center;">Дії</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="j : ${journals}">
+                <td th:text="${j.subject.name}"></td>
+                <td th:text="${j.academicYear.name}"></td>
+                <td>
+                    <span th:if="${#lists.isEmpty(j.teachers)}" class="helper">Не призначено</span>
+                    <span th:each="t, iter : ${j.teachers}">
+                            <span th:text="${t.name + ' ' + t.surname}"></span><span th:if="!${iter.last}">, </span>
+                        </span>
+                </td>
+                <td style="text-align: center;">
+                    <a th:href="@{/journal/{id}(id=${j.id})}" class="btn btn--primary" style="text-decoration: none; padding: 0.4rem 0.8rem; font-size: 0.9rem;">
+                        Переглянути
+                    </a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
 
-        <section id="panel-teachers" class="tab-panel">
-            <h3 class="section-title">Викладачі відділу</h3>
-
-            <table class="table">
-                <thead>
-                <tr>
-                    <th>Ім'я</th>
-                    <th>Прізвище</th>
-                    <th>Email</th>
-                    <th>Предмет</th>
-                    <th>К-ть учнів</th>
-                    <th>Дії</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr th:each="teacher : ${departmentTeachers}">
-                    <td th:text="${teacher.name}">Ім'я</td>
-                    <td th:text="${teacher.surname}">Прізвище</td>
-                    <td th:text="${teacher.email}">email</td>
-                    <td th:text="${teacher.subject != null ? teacher.subject.name : '—'}">Предмет</td>
-                    <td th:text="${teacher.studentsCount ?: 0}">0</td>
-                    <td>
-                        <button class="btn btn--primary" th:onclick="'viewTeacher(' + ${teacher.id} + ')'">Переглянути</button>
-                    </td>
-                </tr>
-                <tr th:if="${#lists.isEmpty(departmentTeachers)}">
-                    <td colspan="6" class="helper">Викладачів поки що немає.</td>
-                </tr>
-                </tbody>
-            </table>
-        </section>
-
-        <section id="panel-reports" class="tab-panel">
-            <h3 class="section-title">Звіти та аналітика</h3>
-
-            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(250px, 1fr)); gap:1rem; margin-bottom:2rem">
-                <button class="btn btn--primary" onclick="generateDeptReport()">Звіт по відділу</button>
-                <button class="btn btn--primary" onclick="generateGradesReport()">Звіт по оцінках</button>
-                <button class="btn btn--primary" onclick="generateAttendanceReport()">Звіт по відвідуваності</button>
-                <button class="btn btn--primary" onclick="generateTeachersReport()">Звіт по викладачах</button>
-            </div>
-
-            <div id="reportContent" style="margin-top:1rem; padding:1rem; border:1px solid var(--border); border-radius:var(--radius); display:none">
-                <h4>Результати звіту</h4>
-                <div id="reportData"></div>
-            </div>
-
-            <h4>Швидкі дії</h4>
-            <div style="display:flex; gap:1rem; flex-wrap:wrap; margin-top:1rem">
-                <button class="btn btn--success" onclick="exportAllGrades()">Експорт всіх оцінок</button>
-                <button class="btn btn--warning" onclick="sendReminders()">Відправити нагадування викладачам</button>
-                <button class="btn btn--primary" onclick="scheduleReport()">Запланувати автозвіт</button>
-            </div>
-        </section>
-
+        <p class="helper" th:if="${#lists.isEmpty(journals) and departmentName != 'Не призначено'}" style="margin-top: 1rem;">
+            У цьому відділі поки немає створених журналів.
+        </p>
     </div>
 </main>
-<script th:src="@{/js/head-home.js}"></script>
+
 </body>
 </html>

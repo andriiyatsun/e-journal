@@ -1,6 +1,7 @@
 package ejournal.ejournal.repo;
 
 import ejournal.ejournal.model.StudentEntity;
+import ejournal.ejournal.model.StudentGroupEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.LocalDate;

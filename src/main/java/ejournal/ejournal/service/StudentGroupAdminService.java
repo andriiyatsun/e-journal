@@ -109,4 +109,36 @@ public class StudentGroupAdminService {
 
         lessonPlanRepo.saveAll(lessonsToUpdate);
     }
+
+    private final ejournal.ejournal.repo.AchievementRepository achievementRepo;
+    private final ejournal.ejournal.repo.OrgWorkRepository orgWorkRepo;
+    private final ejournal.ejournal.repo.MethodicalWorkRepository methodicalWorkRepo;
+    private final ejournal.ejournal.repo.RemarkRepository remarkRepo;
+
+    public void addAchievement(Long journalId, String studentName, String participation, String practicalResult, String evaluation) {
+        StudentGroupEntity group = studentGroupRepo.findById(journalId).orElseThrow();
+        achievementRepo.save(ejournal.ejournal.model.AchievementEntity.builder()
+                .studentName(studentName).participation(participation)
+                .practicalResult(practicalResult).evaluation(evaluation).studentGroup(group).build());
+    }
+
+    public void addOrgWork(Long journalId, LocalDate date, String content, String location, Integer participantsCount) {
+        StudentGroupEntity group = studentGroupRepo.findById(journalId).orElseThrow();
+        orgWorkRepo.save(ejournal.ejournal.model.OrgWorkEntity.builder()
+                .date(date).content(content).location(location)
+                .participantsCount(participantsCount).studentGroup(group).build());
+    }
+
+    public void addMethodicalWork(Long journalId, LocalDate date, String content, String targetAudience, String location) {
+        StudentGroupEntity group = studentGroupRepo.findById(journalId).orElseThrow();
+        methodicalWorkRepo.save(ejournal.ejournal.model.MethodicalWorkEntity.builder()
+                .date(date).content(content).targetAudience(targetAudience)
+                .location(location).studentGroup(group).build());
+    }
+
+    public void addRemark(Long journalId, LocalDate date, String text, String authorName) {
+        StudentGroupEntity group = studentGroupRepo.findById(journalId).orElseThrow();
+        remarkRepo.save(ejournal.ejournal.model.RemarkEntity.builder()
+                .date(date).text(text).authorName(authorName).studentGroup(group).build());
+    }
 }

@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-
 import java.time.LocalDate;
 import java.util.List;
 
@@ -90,14 +89,35 @@ public class JournalAdminController {
         return "redirect:/journal/" + id + "#creative";
     }
 
-    @PostMapping("/{id}/add-remark")
-    @PreAuthorize("hasRole('HEAD')") // Тільки керівник
-    public String addRemark(@PathVariable Long id,
-                            @RequestParam String text,
-                            Authentication auth,
-                            RedirectAttributes ra) {
-        String author = auth.getName();
-        // Логіка збереження зауваження
-        return "redirect:/journal/" + id + "#remarks";
+   //@PostMapping("/{id}/add-remark")
+   //@PreAuthorize("hasRole('HEAD')") // Тільки керівник
+   //public String addRemark(@PathVariable Long id,
+   //                        @RequestParam String text,
+   //                        Authentication auth,
+   //                        RedirectAttributes ra) {
+   //    String author = auth.getName();
+   //    // Логіка збереження зауваження
+   //    return "redirect:/journal/" + id + "#remarks";
+   //}
+
+    @PostMapping("/{id}/add-achievement")
+    public String addAchievement(@PathVariable Long id, @RequestParam String studentName, @RequestParam String participation,
+                                 @RequestParam String practicalResult, @RequestParam String evaluation) {
+        groupAdminService.addAchievement(id, studentName, participation, practicalResult, evaluation);
+        return "redirect:/journal/" + id + "#creative";
+    }
+
+    @PostMapping("/{id}/add-org-work")
+    public String addOrgWork(@PathVariable Long id, @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+                             @RequestParam String content, @RequestParam String location, @RequestParam Integer participantsCount) {
+        groupAdminService.addOrgWork(id, date, content, location, participantsCount);
+        return "redirect:/journal/" + id + "#org";
+    }
+
+    @PostMapping("/{id}/add-methodical-work")
+    public String addMethodicalWork(@PathVariable Long id, @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+                                    @RequestParam String content, @RequestParam String targetAudience, @RequestParam String location) {
+        groupAdminService.addMethodicalWork(id, date, content, targetAudience, location);
+        return "redirect:/journal/" + id + "#method";
     }
 }

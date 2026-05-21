@@ -6,19 +6,21 @@ import lombok.*;
 import java.time.LocalDate;
 
 @Entity
-@Table(name = "remarks")
+@Table(name = "methodical_works")
 @Getter @Setter @Builder @NoArgsConstructor @AllArgsConstructor
-public class RemarkEntity {
+public class MethodicalWorkEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; // Додано правильний первинний ключ
+    private Long id;
 
-    private LocalDate date;
+    private LocalDate date; // Дата
 
-    @Column(length = 1000)
-    private String text; // Результат перевірки
+    @Column(length = 500)
+    private String content; // Зміст роботи
 
-    private String authorName; // ПІБ, посада особи, яка перевірила
+    private String targetAudience; // Для кого проведено захід
+
+    private String location; // Місце проведення
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "student_group_id")

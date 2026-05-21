@@ -10,9 +10,10 @@
 <header class="site-header">
     <div class="container">
         <div class="header-left">
-            <a class="exit-btn" th:href="@{/admin/dashboard#journals}"
-               title="Повернутися до Адмін-панелі"
-            >Назад</a>
+            <form th:action="@{/logout}" method="post" style="margin: 0; display: inline-block;">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                <button type="submit" class="exit-btn" title="Вийти з системи" style="border: 1px solid #ccc; border-radius: 4px; padding: 4px 12px; background: white; cursor: pointer; font-family: inherit; font-size: inherit;">Вийти</button>
+            </form>
             <span class="brand">
                 <span class="brand__logo"></span>
                 <span class="brand__title" th:text="${journal.name}">Назва Журналу</span>
@@ -51,11 +52,14 @@
 
             <div class="actions-bar">
                 <form th:action="@{/admin/journals/{id}/generate-ktp(id=${journal.id})}" method="post"
-                      onsubmit="return confirm('Це видалить існуючий КТП (крім проведених занять) і згенерує новий на основі дат та розкладу. Ви впевнені?');">
+                      onsubmit="return confirm('Це видалить існуючий КТП. Ви впевнені?');">
                     <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                    <button type="submit" class="btn btn--danger">Згенерувати/Оновити КТП</button>
+
+                    <button th:type="${isHead} ? 'button' : 'submit'"
+                            th:onclick="${isHead} ? 'alert(&quot;Голова відділу може тільки переглядати журнал та писати зауваження.&quot;);' : null"
+                            class="btn btn--danger">Згенерувати/Оновити КТП</button>
                 </form>
-                <p class="helper" style="margin: 0;">(Натисніть для автоматичної генерації планових дат на основі розкладу та календаря)</p>
+                <p class="helper" style="margin: 0;">(Натисніть для автоматичної генерації планових дат)</p>
             </div>
 
             <form th:action="@{/journal/{id}/update-details(id=${journal.id})}" method="post" class="main-details-form">
@@ -121,7 +125,9 @@
                 </div>
 
                 <div class="submit-row" style="margin-top: 1.5rem; justify-content: flex-start; border-top: 1px solid var(--border); padding-top: 1rem;">
-                    <button type="submit" class="btn btn--primary">Зберегти Основні Відомості</button>
+                    <button th:type="${isHead} ? 'button' : 'submit'"
+                            th:onclick="${isHead} ? 'alert(&quot;Голова відділу може тільки переглядати журнал та писати зауваження.&quot;);' : null"
+                            class="btn btn--primary">Зберегти Основні Відомості</button>
                 </div>
             </form>
         </section>
@@ -139,7 +145,9 @@
                 <input type="hidden" name="fragment" value="kp1" />
 
                 <div style="margin-bottom: 1rem;">
-                    <button type="submit" class="btn btn--primary" onclick="return confirm('Зберегти зміни у темах, датах та примітках КП-1?');">Зберегти теми/дати/примітки КП-1</button>
+                    <button th:type="${isHead} ? 'button' : 'submit'"
+                            th:onclick="${isHead} ? 'alert(&quot;Голова відділу може тільки переглядати журнал та писати зауваження.&quot;);' : null"
+                            class="btn btn--primary">Зберегти теми/дати/примітки</button>
                 </div>
 
                 <table class="table" th:if="${!#lists.isEmpty(kp1Plans)}">
@@ -205,7 +213,9 @@
                 <input type="hidden" name="fragment" value="kp2" />
 
                 <div style="margin-bottom: 1rem;">
-                    <button type="submit" class="btn btn--primary" onclick="return confirm('Зберегти зміни у темах, датах та примітках КП-2?');">Зберегти теми/дати/примітки КП-2</button>
+                    <button th:type="${isHead} ? 'button' : 'submit'"
+                            th:onclick="${isHead} ? 'alert(&quot;Голова відділу може тільки переглядати журнал та писати зауваження.&quot;);' : null"
+                            class="btn btn--primary">Зберегти теми/дати/примітки</button>
                 </div>
 
                 <table class="table" th:if="${!#lists.isEmpty(kp2Plans)}">
@@ -264,23 +274,257 @@
         </section>
 
         <section id="panel-safety" class="tab-panel">
-            <h3 class="section-title">Інструктаж з БЖ</h3>
-            <p class="helper">Тут будуть форми для "Вступний інструктаж", "Інструктаж (дати)" та "Інструктаж (список)".</p>
+            <style>
+                .safety-header-title { text-align: center; font-weight: bold; margin-bottom: 2rem; text-transform: uppercase; }
+                .safety-sub-section { margin-bottom: 3rem; }
+                .table-bordered { border-collapse: collapse; width: 100%; margin-bottom: 1rem; }
+                .table-bordered th, .table-bordered td { border: 2px solid #000; padding: 8px; text-align: center; vertical-align: middle; }
+                .table-bordered th { background-color: #f8f9fa; font-weight: bold; }
+                .text-left { text-align: left !important; }
+
+                /* Стиль для вертикального тексту дат */
+                .vertical-text {
+                    writing-mode: vertical-rl;
+                    transform: rotate(180deg);
+                    white-space: nowrap;
+                    padding: 10px 5px !important;
+                    max-height: 120px;
+                }
+                .topic-text { font-size: 0.9rem; line-height: 1.4; }
+                .checkbox-cell { text-align: center; }
+                input[type="checkbox"] { transform: scale(1.3); cursor: pointer; }
+                input[type="checkbox"]:disabled { cursor: not-allowed; opacity: 0.6; }
+            </style>
+
+            <div class="safety-header-title">
+                <h2>Облік проведення бесід, інструктажів,<br>заходів з безпеки життєдіяльності</h2>
+            </div>
+
+            <!-- ==========================================
+                 ЧАСТИНА 1: Тема і зміст
+                 ========================================== -->
+            <div class="safety-sub-section">
+                <h3 class="section-title">1. Тематика інструктажів</h3>
+
+                <form th:action="@{/journal/{id}/add-safety-topic(id=${journal.id})}" method="post" class="card" style="margin-bottom: 1.5rem; background: #f8f9fa;">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                    <div style="display: grid; grid-template-columns: 150px 1fr; gap: 1rem; margin-bottom: 1rem;">
+                        <div>
+                            <label style="font-weight: bold; display: block; margin-bottom: 0.5rem;">Дата:</label>
+                            <input type="date" name="date" required style="width: 100%;" th:disabled="${isHead}" />
+                        </div>
+                        <div>
+                            <label style="font-weight: bold; display: block; margin-bottom: 0.5rem;">Тема і зміст заняття:</label>
+                            <textarea name="content" rows="3" placeholder="Вступний інструктаж з БЖ..." required style="width: 100%; border: 1px solid var(--border); border-radius: 4px; padding: 8px;" th:disabled="${isHead}"></textarea>
+                        </div>
+                    </div>
+                    <button th:type="${isHead} ? 'button' : 'submit'"
+                            th:onclick="${isHead} ? 'alert(&quot;Голова відділу може тільки переглядати журнал та писати зауваження.&quot;);' : null"
+                            class="btn btn--primary">Додати запис інструктажу</button>
+                </form>
+
+                <table class="table-bordered">
+                    <thead>
+                    <tr>
+                        <th style="width: 120px;">Дата</th>
+                        <th>Тема і зміст заняття</th>
+                        <th style="width: 150px;">Підпис педагога</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="topic : ${safetyTopics}">
+                        <td th:text="${#temporals.format(topic.date, 'dd.MM.yyyy')}"></td>
+                        <td class="text-left topic-text" th:text="${topic.content}"></td>
+                        <td th:text="${topic.instructorName}"></td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(safetyTopics)}">
+                        <td colspan="3" style="color: #666; padding: 20px;">Немає записів про теми інструктажів</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- ==========================================
+                 ЧАСТИНА 2: Вступний інструктаж
+                 ========================================== -->
+            <div class="safety-sub-section">
+                <h3 class="section-title">2. Реєстрація вступного інструктажу</h3>
+
+                <form th:action="@{/journal/{id}/save-intro-safety(id=${journal.id})}" method="post">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+
+                    <div style="margin-bottom: 1rem; display: flex; gap: 1rem; align-items: center;">
+                        <label>Дата проведення:</label>
+                        <input type="date" name="introDate" th:disabled="${isHead}" />
+                        <label>Хто проводить:</label>
+                        <input type="text" name="instructor" placeholder="ПІБ викладача" th:disabled="${isHead}" />
+                    </div>
+
+                    <table class="table-bordered">
+                        <thead>
+                        <tr>
+                            <th style="width: 50px;">№ з/п</th>
+                            <th>Прізвище, ім'я особи, яку інструктують</th>
+                            <th style="width: 150px;">Підпис особи<br>(Ознайомлений)</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="student, stat : ${journal.students}">
+                            <td th:text="${stat.count}">1</td>
+                            <td class="text-left" th:text="${student.surname + ' ' + student.name}"></td>
+                            <td class="checkbox-cell">
+                                <input type="checkbox" name="studentIds" th:value="${student.id}"
+                                       th:checked="${instructedStudentIds != null and instructedStudentIds.contains(student.id)}"
+                                       th:disabled="${isHead}" title="Поставити відмітку" />
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(journal.students)}">
+                            <td colspan="3" style="color: #666; padding: 20px;">Список групи порожній. Додайте дітей у вкладці "Облік дітей".</td>
+                        </tr>
+                        </tbody>
+                    </table>
+
+                    <div style="margin-top: 1rem;">
+                        <button th:type="${isHead} ? 'button' : 'submit'"
+                                th:onclick="${isHead} ? 'alert(&quot;Голова відділу може тільки переглядати журнал та писати зауваження.&quot;);' : null"
+                                class="btn btn--primary">Зберегти відмітки вступного інструктажу</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- ==========================================
+                 ЧАСТИНА 3: Сітка (Облік відвідування)
+                 ========================================== -->
+            <div class="safety-sub-section">
+                <h3 class="section-title">3. Облік відвідування інструктажів</h3>
+
+                <form th:action="@{/journal/{id}/save-safety-grid(id=${journal.id})}" method="post">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+
+                    <div style="overflow-x: auto;">
+                        <table class="table-bordered">
+                            <thead>
+                            <tr>
+                                <th rowspan="2" style="width: 50px;">№ з/п</th>
+                                <th rowspan="2" style="min-width: 200px;">Прізвище, ім'я</th>
+                                <th th:if="${!#lists.isEmpty(safetyTopics)}" th:colspan="${#lists.size(safetyTopics)}">Дата</th>
+                                <th th:if="${#lists.isEmpty(safetyTopics)}">Дата</th>
+                            </tr>
+                            <tr>
+                                <th th:each="topic : ${safetyTopics}" class="vertical-text"
+                                    th:text="${#temporals.format(topic.date, 'dd/MM')}">
+                                </th>
+                                <th th:if="${#lists.isEmpty(safetyTopics)}" class="vertical-text" style="color:#aaa;">Немає тем</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="student, stat : ${journal.students}">
+                                <td th:text="${stat.count}">1</td>
+                                <td class="text-left" th:text="${student.surname + ' ' + student.name}"></td>
+
+                                <td th:each="topic : ${safetyTopics}" class="checkbox-cell">
+                                    <input type="checkbox"
+                                           th:name="'att_' + ${topic.id} + '_' + ${student.id}"
+                                           th:checked="${attendanceMap != null and attendanceMap.containsKey(topic.id + '_' + student.id)}"
+                                           th:disabled="${isHead}">
+                                </td>
+                                <td th:if="${#lists.isEmpty(safetyTopics)}" class="checkbox-cell"></td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(journal.students)}">
+                                <td th:colspan="${#lists.size(safetyTopics) + 2}" style="color: #666; padding: 20px;">Список групи порожній.</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div style="margin-top: 1rem;">
+                        <button th:type="${isHead} ? 'button' : 'submit'"
+                                th:onclick="${isHead} ? 'alert(&quot;Голова відділу може тільки переглядати журнал та писати зауваження.&quot;);' : null"
+                                class="btn btn--primary">Зберегти облік інструктажів</button>
+                    </div>
+                </form>
+            </div>
         </section>
 
         <section id="panel-org" class="tab-panel">
-            <h3 class="section-title">Оргмасова робота</h3>
-            <p class="helper">Форма для "Оргмасова робота".</p>
+            <h3 class="section-title">Масова та суспільно корисна робота</h3>
+
+            <form th:action="@{/journal/{id}/add-org-work(id=${journal.id})}" method="post" class="card" style="margin-bottom: 1.5rem;">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+                    <input type="date" name="date" required />
+                    <input type="text" name="content" placeholder="Зміст заходу" style="grid-column: span 2;" required />
+                    <input type="text" name="location" placeholder="Місце проведення" required />
+                    <input type="number" name="participantsCount" placeholder="Кількість уч." required />
+                </div>
+                <button th:type="${isHead} ? 'button' : 'submit'"
+                        th:onclick="${isHead} ? 'alert(&quot;Голова відділу може тільки переглядати журнал та писати зауваження.&quot;);' : null"
+                        class="btn btn--primary">Додати запис</button>
+            </form>
+
+            <table class="table" th:if="${!#lists.isEmpty(orgWorks)}">
+                <thead><tr><th style="width:100px;">Дата</th><th>Зміст заходу</th><th>Місце</th><th>К-ть уч.</th></tr></thead>
+                <tbody>
+                <tr th:each="o : ${orgWorks}">
+                    <td th:text="${#temporals.format(o.date, 'dd.MM.yyyy')}"></td>
+                    <td th:text="${o.content}"></td><td th:text="${o.location}"></td><td th:text="${o.participantsCount}"></td>
+                </tr>
+                </tbody>
+            </table>
         </section>
 
         <section id="panel-method" class="tab-panel">
-            <h3 class="section-title">Методична робота</h3>
-            <p class="helper">Форма для "Методична робота".</p>
+            <h3 class="section-title">Організаційна та методична робота</h3>
+
+            <form th:action="@{/journal/{id}/add-methodical-work(id=${journal.id})}" method="post" class="card" style="margin-bottom: 1.5rem;">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+                    <input type="date" name="date" required />
+                    <input type="text" name="content" placeholder="Зміст роботи" style="grid-column: span 2;" required />
+                    <input type="text" name="targetAudience" placeholder="Для кого проведено" required />
+                    <input type="text" name="location" placeholder="Місце проведення" required />
+                </div>
+                <button th:type="${isHead} ? 'button' : 'submit'"
+                        th:onclick="${isHead} ? 'alert(&quot;Голова відділу може тільки переглядати журнал та писати зауваження.&quot;);' : null"
+                        class="btn btn--primary">Додати запис</button>
+            </form>
+
+            <table class="table" th:if="${!#lists.isEmpty(methodicalWorks)}">
+                <thead><tr><th style="width:100px;">Дата</th><th>Зміст роботи</th><th>Для кого</th><th>Місце</th></tr></thead>
+                <tbody>
+                <tr th:each="m : ${methodicalWorks}">
+                    <td th:text="${#temporals.format(m.date, 'dd.MM.yyyy')}"></td><td th:text="${m.content}"></td>
+                    <td th:text="${m.targetAudience}"></td><td th:text="${m.location}"></td>
+                </tr>
+                </tbody>
+            </table>
         </section>
 
         <section id="panel-creative" class="tab-panel">
-            <h3 class="section-title">Творчі досягнення</h3>
-            <p class="helper">Форма для "Творчі досягнення".</p>
+            <h3 class="section-title">Творчі досягнення членів гуртка</h3>
+
+            <form th:action="@{/journal/{id}/add-achievement(id=${journal.id})}" method="post" class="card" style="margin-bottom: 1.5rem;">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+                    <input type="text" name="studentName" placeholder="Прізвище, ім'я" required />
+                    <input type="text" name="participation" placeholder="Участь у заходах" required />
+                    <input type="text" name="practicalResult" placeholder="Практичний результат" required />
+                    <input type="text" name="evaluation" placeholder="Оцінка (нагорода)" required />
+                </div>
+                <button th:type="${isHead} ? 'button' : 'submit'"
+                        th:onclick="${isHead} ? 'alert(&quot;Голова відділу може тільки переглядати журнал та писати зауваження.&quot;);' : null"
+                        class="btn btn--primary">Додати запис</button>
+            </form>
+
+            <table class="table" th:if="${!#lists.isEmpty(achievements)}">
+                <thead><tr><th>Прізвище, ім'я</th><th>Участь</th><th>Результат</th><th>Оцінка</th></tr></thead>
+                <tbody>
+                <tr th:each="a : ${achievements}">
+                    <td th:text="${a.studentName}"></td><td th:text="${a.participation}"></td>
+                    <td th:text="${a.practicalResult}"></td><td th:text="${a.evaluation}"></td>
+                </tr>
+                </tbody>
+            </table>
         </section>
 
         <section id="panel-report" class="tab-panel">
@@ -289,22 +533,21 @@
         </section>
 
         <section id="panel-remarks" class="tab-panel">
-            <h3 class="section-title">Зауваження</h3>
+            <h3 class="section-title">Зауваження щодо ведення журналу</h3>
 
-            <form th:if="${#authorization.expression('hasRole(''HEAD'')')}"
-                  th:action="@{/journal/{id}/add-remark(id=${journal.id})}" method="post" class="card" style="margin-bottom: 1rem;">
+            <!-- Форма зауважень працює як раніше, на основі canAddRemark з контролера -->
+            <form th:if="${canAddRemark}"
+                  th:action="@{/journal/{id}/add-remark(id=${journal.id})}" method="post" class="card" style="margin-bottom: 1.5rem; background: #fffdfaa1; border-left: 4px solid var(--warning);">
                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                <div class="form-group">
-                    <label>Додати зауваження:</label>
-                    <textarea name="text" class="ktp-input" style="width:100%" required></textarea>
+                <div style="display: grid; grid-template-columns: 150px 1fr; gap: 1rem; margin-bottom: 1rem;">
+                    <input type="date" name="date" required th:value="${#dates.format(#dates.createNow(), 'yyyy-MM-dd')}" />
+                    <textarea name="text" placeholder="Результат перевірки / Зауваження" rows="2" style="width:100%; border:1px solid var(--border); border-radius:6px; padding:.5rem;" required></textarea>
                 </div>
-                <button type="submit" class="btn btn--primary">Зберегти зауваження</button>
+                <button type="submit" class="btn btn--warning">Зберегти зауваження</button>
             </form>
 
-            <table class="table">
-                <thead>
-                <tr><th>Дата</th><th>Зауваження</th><th>Автор</th></tr>
-                </thead>
+            <table class="table" th:if="${!#lists.isEmpty(remarks)}">
+                <thead><tr><th style="width:120px;">Дата перевірки</th><th>Результат перевірки</th><th style="width:250px;">ПІБ особи</th></tr></thead>
                 <tbody>
                 <tr th:each="r : ${remarks}">
                     <td th:text="${#temporals.format(r.date, 'dd.MM.yyyy')}"></td>

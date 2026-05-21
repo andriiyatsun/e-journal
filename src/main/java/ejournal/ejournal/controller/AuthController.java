@@ -12,8 +12,8 @@ public class AuthController {
     @GetMapping("/login")
     public String login() { return "login"; }
 
-    @GetMapping("/head/home")
-    public String headHome() { return "head-home"; }
+    //@GetMapping("/head/home")
+    //public String headHome() { return "head-home"; }
 
     @GetMapping("/logout")
     public String logout() { return "login"; }
